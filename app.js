@@ -1,70 +1,82 @@
-// app.js - 100% Cloud / Database Persistence (Zero LocalStorage)
+// app.js - 100% Server-Side Database Architecture (Zero LocalStorage)
 
 const BACKEND_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";
 
-// 1. Authentication Listener (Drives state from Firebase, not local memory)
+// 1. Initialize Authentication State Listener
 firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
-        console.log("Authenticated user detected:", user.uid);
-        // Immediately fetch data from the server database, never from localStorage
+        console.log("Authenticated via Firebase:", user.uid);
         await fetchUserDataFromServer(user.uid);
     } else {
-        console.log("No active user session.");
-        clearUIState();
+        console.log("No active session. User is logged out.");
+        resetUIForLoggedOutState();
     }
 });
 
-// 2. Fetch User Profile Exclusively From Server Database
+// 2. Real Google Sign-In Trigger (Bound to your Login Button)
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            console.log("Google Login Success:", result.user.email);
+        })
+        .catch((error) => {
+            console.error("Google Login Error:", error.code, error.message);
+            alert("Authentication failed: " + error.message);
+        });
+}
+
+// 3. Fetch Profile Exclusively from Cloudflare R2 Database
 async function fetchUserDataFromServer(userId) {
     try {
         const response = await fetch(`${BACKEND_ENDPOINT}/profiles/${userId}.json`);
         if (response.ok) {
             const data = await response.json();
-            populateUI(data);
+            populateUIWithServerData(data);
         } else {
-            console.log("No existing profile found on server. Initializing blank state.");
+            console.log("No remote profile found. Initializing new record.");
         }
     } catch (error) {
-        console.error("Failed to load data from server database:", error);
+        console.error("Failed to fetch from server database:", error);
     }
 }
 
-// 3. Save Profile Exclusively To Server Database (Zero LocalStorage usage)
+// 4. Save Profile Exclusively to Cloudflare R2 Database (Zero Local Storage)
 async function saveProfileToServer(userId, profileData) {
     const saveButton = document.getElementById('save-profile-btn');
     if (saveButton) saveButton.textContent = "Syncing to Database...";
 
     try {
         const response = await fetch(`${BACKEND_ENDPOINT}/profiles/${userId}.json`, {
-            method: 'PUT', // Overwrites/updates record directly on the server
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 ...profileData,
-                lastSynced: new Date().toISOString()
+                lastUpdated: new Date().toISOString()
             })
         });
 
         if (!response.ok) {
-            throw new Error(`Server sync failed with status ${response.status}`);
+            throw new Error(`Database sync failed with status ${response.status}`);
         }
 
-        console.log("Successfully persisted to full database.");
-        if (saveButton) saveButton.textContent = "Saved to Database";
+        console.log("Successfully saved to server database.");
+        if (saveButton) saveButton.textContent = "Saved";
         setTimeout(() => { if (saveButton) saveButton.textContent = "Save Changes"; }, 2000);
 
     } catch (error) {
-        console.error("Database persistence error:", error);
-        alert("Error saving to backend database. Check console.");
+        console.error("Persistence error:", error);
+        alert("Failed to save changes to the database.");
         if (saveButton) saveButton.textContent = "Sync Failed";
     }
 }
 
-function populateUI(data) {
-    // Populate your input fields and elements dynamically with server data here
+function populateUIWithServerData(data) {
+    // Map your server JSON data fields to your UI inputs here
 }
 
-function clearUIState() {
-    // Reset UI when logged out
+function resetUIForLoggedOutState() {
+    // Clear display fields back to default empty state
 }
