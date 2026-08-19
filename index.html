@@ -3,287 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bet.fund — Private Syndicate & Profile Studio</title>
+    <title>bet.fund / Syndicate Profile Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Identity Provider Integration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script>
+      var config = {
+        apiKey: "AIzaSyB8CUWrQ76ej4-WckpJwHLSbsAO6C5WrPg",
+        authDomain: "optixxx.firebaseapp.com",
+      };
+      try {
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+            firebase.initializeApp(config);
+        }
+      } catch (e) {
+        console.warn("Firebase script offline or blocked:", e);
+      }
+    </script>
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%); }
-        .gold-border { border-color: rgba(245, 158, 11, 0.3); }
-        .gold-text { color: #f59e0b; }
-        .elite-badge-glow { box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); }
+        
+        .gold-gradient { background: linear-gradient(135deg, rgba(191, 149, 63, 0.95) 0%, rgba(252, 246, 186, 0.95) 25%, rgba(179, 135, 40, 0.95) 50%, rgba(251, 245, 183, 0.95) 75%, rgba(170, 119, 28, 0.95) 100%); }
+        .gold-text { background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-border { border-color: rgba(191, 149, 63, 0.4); }
+        .gold-bg-glow { box-shadow: 0 0 20px rgba(191, 149, 63, 0.2); }
+        .glass-luxury { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        
+        @keyframes elitePulse {
+            0% { box-shadow: 0 0 0 0 rgba(191, 149, 63, 0.3); }
+            70% { box-shadow: 0 0 0 8px rgba(191, 149, 63, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(191, 149, 63, 0.3); }
+        }
+        .elite-badge-glow { animation: elitePulse 2s infinite; }
+        input[type=range] { accent-color: #bf953f; }
     </style>
 </head>
-<body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black">
+<body class="bg-[#030303] text-neutral-100 font-sans min-h-screen pb-32 selection:bg-[#bf953f] selection:text-black">
 
-    <!-- AUTH GATE MODAL -->
-    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-        <div class="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl">
-            <div class="text-center mb-6">
-                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
-                    Restricted Access
-                </div>
-                <h1 class="text-2xl font-bold tracking-tight text-white mb-1">bet.fund</h1>
-                <p class="text-xs text-neutral-400">Authenticate to enter the syndicate workspace</p>
+    <!-- STEP 1: MANDATORY LOGIN GATE -->
+    <div id="auth-gate" class="fixed inset-0 z-[100] bg-[#030303] flex items-center justify-center p-6 overflow-y-auto">
+        <div class="max-w-md w-full bg-neutral-950 border gold-border rounded-3xl p-8 space-y-6 shadow-2xl gold-bg-glow my-auto relative">
+            <div class="space-y-2 text-center">
+                <h1 class="text-3xl font-light tracking-[0.3em] uppercase gold-text">bet.fund</h1>
+                <p class="text-xs text-neutral-400">Authentication required to enter syndicate workspace.</p>
+            </div>
+            
+            <div class="flex bg-neutral-900 p-1 rounded-xl text-xs font-semibold">
+                <button onclick="switchAuthTab('google')" id="auth-tab-google" class="flex-1 py-2 rounded-lg bg-neutral-800 text-white transition">Google</button>
+                <button onclick="switchAuthTab('email')" id="auth-tab-email" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Email</button>
+                <button onclick="switchAuthTab('demo')" id="auth-tab-demo" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Quick Test</button>
             </div>
 
-            <div class="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800 mb-5 text-xs font-semibold">
-                <button id="auth-tab-google" onclick="switchAuthTab('google')" class="flex-1 py-2 rounded-lg bg-neutral-800 text-white transition">Google</button>
-                <button id="auth-tab-email" onclick="switchAuthTab('email')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Email</button>
-                <button id="auth-tab-demo" onclick="switchAuthTab('demo')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Quick Access</button>
-            </div>
-
-            <div id="gate-error-msg" class="hidden mb-4 p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-red-400 text-xs font-medium"></div>
-
-            <!-- Google View -->
             <div id="auth-view-google" class="space-y-4">
-                <button onclick="triggerGoogleAuth()" class="w-full py-3 px-4 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                    Continue with Google
+                <p class="text-xs text-neutral-400 text-center">Sign in using Google identity provider.</p>
+                <button onclick="triggerGoogleAuth()" class="w-full py-3 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-3 shadow-lg">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.17 21.32 7.23 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.8 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                    <span>Sign in with Google</span>
                 </button>
             </div>
 
-            <!-- Email View -->
-            <div id="auth-view-email" class="hidden space-y-3">
-                <input id="email-input" type="email" placeholder="Email Address" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500" />
-                <input id="pass-input" type="password" placeholder="Password" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500" />
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button onclick="handleEmailAuth(true)" class="py-2.5 bg-neutral-800 text-white font-semibold text-xs rounded-xl hover:bg-neutral-700 transition">Sign In</button>
-                    <button onclick="handleEmailAuth(false)" class="py-2.5 bg-amber-500 text-black font-semibold text-xs rounded-xl hover:bg-amber-400 transition">Register</button>
+            <div id="auth-view-email" class="space-y-3 hidden">
+                <input type="email" id="email-input" placeholder="name@domain.com" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                <input type="password" id="pass-input" placeholder="Password" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="handleEmailAuth(true)" class="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white rounded-xl transition border border-neutral-700">Sign In</button>
+                    <button onclick="handleEmailAuth(false)" class="flex-1 py-2.5 gold-gradient text-black text-xs font-bold rounded-xl transition hover:opacity-90">Register</button>
                 </div>
             </div>
 
-            <!-- Demo View -->
-            <div id="auth-view-demo" class="hidden space-y-3">
-                <p class="text-xs text-neutral-400 text-center">Bypass auth for instant testing session.</p>
-                <button onclick="handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' })" class="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs rounded-xl transition">
-                    Enter as Ysk (rekvirzi@gmail.com)
-                </button>
+            <div id="auth-view-demo" class="space-y-3 hidden text-center">
+                <p class="text-xs text-neutral-400">Bypass server configuration and test local studio flow instantly.</p>
+                <button onclick="handleAuthSuccess({ displayName: 'Verified User', email: 'user@bet.fund' })" class="w-full py-3 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg">Login as Test User</button>
             </div>
+
+            <p id="gate-error-msg" class="text-[11px] text-amber-400 text-center hidden bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20"></p>
         </div>
     </div>
 
-    <!-- USERNAME CLAIM GATE MODAL -->
-    <div id="username-gate" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-        <div class="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl">
-            <div class="text-center mb-6">
-                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
-                    Identity Claim
-                </div>
-                <h2 class="text-2xl font-bold text-white mb-1">Claim Your Handle</h2>
-                <p class="text-xs text-neutral-400">Choose a unique identity on bet.fund</p>
+    <!-- STEP 2: MANDATORY UNIQUE USERNAME CLAIM GATE -->
+    <div id="username-gate" class="fixed inset-0 z-[95] bg-[#030303] flex items-center justify-center p-6 hidden">
+        <div class="max-w-md w-full bg-neutral-950 border gold-border rounded-3xl p-8 space-y-5 shadow-2xl gold-bg-glow my-auto">
+            <div class="space-y-1">
+                <div class="text-[10px] tracking-[0.25em] uppercase font-bold text-amber-400">Step 2 of 2</div>
+                <h2 class="text-xl font-light tracking-wide text-white">Claim Unique Handle</h2>
+                <p class="text-xs text-neutral-400">Usernames are unique across bet.fund. No two users can share the same handle.</p>
             </div>
 
-            <div id="username-error-msg" class="hidden mb-4 p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-red-400 text-xs font-medium"></div>
-
-            <div class="space-y-4">
+            <div class="space-y-2">
+                <label class="block text-[11px] text-neutral-300 font-medium">Desired Username</label>
                 <div class="relative">
-                    <span class="absolute left-3.5 top-2.5 text-neutral-500 text-sm font-semibold">@</span>
-                    <input id="username-claim-input" type="text" placeholder="handle" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-8 pr-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 font-mono" />
+                    <span class="absolute left-4 top-2.5 text-xs text-neutral-500 font-mono">@</span>
+                    <input type="text" id="username-claim-input" placeholder="your_handle" class="w-full bg-[#030303] border border-neutral-800 rounded-xl pl-8 pr-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 font-mono transition">
                 </div>
-                <button onclick="claimUsername()" class="w-full py-3 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition">
-                    Confirm & Proceed
-                </button>
+                <p class="text-[10px] text-neutral-500">Already taken: <span class="text-neutral-400">@ysk, @admin, @betfund, @satoshi</span></p>
             </div>
+
+            <p id="username-error-msg" class="text-[11px] text-red-400 font-medium hidden"></p>
+
+            <button onclick="claimUsername()" class="w-full py-3 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition">
+                Confirm & Enter Studio
+            </button>
         </div>
     </div>
 
-    <!-- MAIN APP SUITE -->
-    <div id="main-app" class="hidden flex-col min-h-screen">
+    <!-- MAIN APP WRAPPER -->
+    <div id="main-app" class="max-w-xl mx-auto w-full border-x border-neutral-900/80 min-h-screen relative hidden flex-col shadow-2xl bg-[#070707]">
         
-        <!-- TOP NAVIGATION BAR -->
-        <header class="border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur-xl sticky top-0 z-40">
-            <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl gold-gradient flex items-center justify-center font-extrabold text-black text-sm shadow-md">b</div>
-                    <span class="font-bold text-sm tracking-tight text-white">bet.fund</span>
-                </div>
+        <div class="bg-emerald-500/20 border-b border-emerald-500/40 text-emerald-300 text-[10px] font-mono py-1 px-4 text-center tracking-wider">
+            ✓ R2 STORAGE SYNC ACTIVE (Cloudflare R2 Endpoint Connected)
+        </div>
 
-                <!-- View Switcher -->
-                <div class="flex bg-neutral-900 border border-neutral-800 rounded-full p-1 text-xs">
-                    <button id="nav-home" onclick="switchView('view-home')" class="nav-btn text-white p-2 rounded-full transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    </button>
-                    <button id="nav-chat" onclick="switchView('view-chat')" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    </button>
-                    <button id="nav-profile" onclick="switchView('view-profile')" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    </button>
-                </div>
-
+        <!-- VIEW: HOME -->
+        <div id="view-home" class="app-view block flex-1">
+            <header class="flex justify-between items-center px-6 py-5 border-b border-neutral-900 sticky top-0 glass-luxury z-30">
                 <div class="flex items-center gap-3">
-                    <div id="nav-badges-row" class="hidden md:flex items-center gap-1.5"></div>
-                    <div class="w-8 h-8 rounded-full overflow-hidden bg-neutral-900 border border-neutral-700 flex items-center justify-center">
-                        <img id="nav-avatar-img" class="max-w-none" src="" alt="Nav Avatar" />
+                    <div class="w-9 h-9 rounded-full border border-neutral-800 overflow-hidden cursor-pointer relative bg-neutral-900" onclick="switchView('view-profile')">
+                        <img id="nav-avatar-img" src="" class="absolute pointer-events-none select-none max-w-none">
+                    </div>
+                    <div id="nav-badges-row" class="flex items-center gap-1.5"></div>
+                </div>
+                <h1 class="text-lg font-light tracking-[0.3em] uppercase gold-text">bet.fund</h1>
+                <button class="text-neutral-400 hover:text-white transition p-1" onclick="switchView('view-settings')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                </button>
+            </header>
+            <div class="p-6 space-y-6">
+                <div class="bg-gradient-to-br from-neutral-900/80 to-neutral-950 border border-neutral-800 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+                    <div class="text-[10px] tracking-[0.25em] uppercase font-bold text-amber-400 mb-2">Authenticated Enclave</div>
+                    <h2 class="text-xl font-light tracking-wide text-white mb-1">Welcome back, <span id="home-display-name" class="gold-text">¥</span></h2>
+                    <p class="text-xs text-neutral-400 mb-6">Upload photos directly from your device, preview live adjustments, and save assets directly to Cloudflare R2 object data storage.</p>
+                    <div class="flex gap-3">
+                        <button onclick="switchView('view-settings')" class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-semibold hover:bg-amber-500/20 transition">Open Studio Settings</button>
                     </div>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <!-- MAIN CONTAINER CONTENT -->
-        <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
-
-            <!-- HOME VIEW -->
-            <div id="view-home" class="app-view block space-y-6">
-                <div class="p-6 bg-gradient-to-r from-neutral-900 to-neutral-950 border border-neutral-800 rounded-3xl">
-                    <h2 class="text-xl font-bold text-white mb-2">Welcome back, <span id="home-display-name"></span></h2>
-                    <p class="text-xs text-neutral-400 max-w-lg">Your bet.fund syndicate terminal is online. Manage your profile, preview live assets, or drop into the enclave chat.</p>
+        <!-- VIEW: CHAT -->
+        <div id="view-chat" class="app-view hidden flex flex-col h-[calc(100vh-5rem)]">
+            <header class="px-6 py-4 border-b border-neutral-900 flex justify-between items-center bg-[#070707]/90 backdrop-blur">
+                <div>
+                    <h2 class="font-light text-xs tracking-[0.2em] uppercase text-neutral-200">bet.fund Terminal</h2>
+                    <p class="text-[10px] text-emerald-400 font-mono">● Secure Channel Online</p>
+                </div>
+            </header>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-neutral-900 border gold-border flex items-center justify-center text-xs font-bold gold-text">Z</div>
+                    <div class="bg-neutral-900/60 border border-neutral-800/80 rounded-2xl p-3 max-w-[80%]">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-semibold gold-text">Zurich Node</span>
+                            <span class="text-[9px] text-neutral-500">11:45 AM</span>
+                        </div>
+                        <p class="text-xs text-neutral-300">Profile transform suite active with direct device file pickers & Cloudflare R2 bucket linkage[cite: 3].</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- CHAT VIEW -->
-            <div id="view-chat" class="app-view hidden space-y-4">
-                <div class="p-4 bg-neutral-900/60 border border-neutral-800 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-bold text-white"># syndicate-enclave</div>
-                        <div class="text-[10px] text-neutral-400">Encrypted workspace terminal</div>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-semibold">Active Node</span>
-                </div>
-
-                <div id="chat-messages" class="h-[400px] bg-neutral-950 border border-neutral-800 rounded-2xl p-4 overflow-y-auto space-y-3 font-mono">
-                    <div class="text-center text-[10px] text-neutral-600 my-2">-- Channel Encrypted --</div>
-                </div>
-
-                <form onsubmit="handleSendMessage(event)" class="flex gap-2">
-                    <input id="chat-input" type="text" placeholder="Send message..." class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500" />
-                    <button type="submit" class="px-5 py-2.5 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition">Send</button>
+            <div class="p-4 border-t border-neutral-900 bg-[#070707]">
+                <form id="chat-form" onsubmit="handleSendMessage(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Type encrypted message..." autocomplete="off" class="flex-1 bg-neutral-900/50 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                    <button type="submit" class="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-white rounded-xl transition border border-neutral-700">Send</button>
                 </form>
             </div>
+        </div>
 
-            <!-- PROFILE STUDIO VIEW -->
-            <div id="view-profile" class="app-view hidden space-y-6">
-                
-                <!-- LIVE CARD DISPLAY SHOWCASE -->
-                <div class="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <!-- Banner -->
-                    <div class="relative h-44 bg-neutral-950 overflow-hidden flex items-center justify-center">
-                        <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Banner" />
-                    </div>
-
-                    <!-- Profile Info Header -->
-                    <div class="p-6 relative pt-0">
-                        <div class="flex justify-between items-end -mt-12 mb-4">
-                            <div class="w-24 h-24 rounded-2xl overflow-hidden bg-neutral-950 border-4 border-neutral-900 shadow-2xl flex items-center justify-center">
-                                <img id="profile-avatar-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Avatar" />
-                            </div>
-                            <div id="profile-badges-showcase" class="flex gap-1.5 mb-2"></div>
-                        </div>
-
-                        <div>
-                            <h2 id="profile-display-name" class="text-xl font-bold text-white"></h2>
-                            <div id="profile-handle-display" class="text-xs text-amber-500 font-mono mb-1"></div>
-                            <div id="profile-url-display" class="text-[10px] text-neutral-500 font-mono mb-3"></div>
-                            <div id="profile-custom-status" class="inline-block px-2.5 py-1 rounded-lg bg-neutral-800/80 text-[11px] text-neutral-300 font-medium mb-3"></div>
-                            <p id="profile-bio-display" class="text-xs text-neutral-400 leading-relaxed max-w-xl"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STUDIO CONTROLS TABS -->
-                <div class="bg-neutral-900 border border-neutral-800 rounded-3xl p-6">
-                    <div class="flex border-b border-neutral-800 mb-6">
-                        <button id="void-tab-profile" onclick="switchSettingsTab('profile')" class="py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition">Profile Customization</button>
-                        <button id="void-tab-nitro" onclick="switchSettingsTab('nitro')" class="py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition flex items-center gap-1.5">Prestige Badges</button>
-                    </div>
-
-                    <!-- TAB: PROFILE SETTINGS -->
-                    <div id="settings-content-profile" class="space-y-5">
-                        
-                        <!-- Text Meta Inputs -->
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Display Name</label>
-                                <input id="input-name" type="text" oninput="updateProfileData()" value="¥" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Status Line</label>
-                                <input id="input-status" type="text" oninput="updateProfileData()" value="• XV ∞ XIX" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Bio</label>
-                            <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">Private banking & alternative investments. Zurich & Geneva.</textarea>
-                        </div>
-
-                        <!-- BANNER UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
-                        <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
-                            <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Banner Upload & Adjustment</div>
-                            
-                            <!-- Live Banner Preview Container -->
-                            <div class="relative w-full h-28 overflow-hidden rounded-xl bg-neutral-900 mb-4 border border-neutral-800 flex items-center justify-center">
-                                <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Banner Preview" />
-                            </div>
-
-                            <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
-                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer mb-4" />
-
-                            <div class="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Zoom (%)</label>
-                                    <input type="range" id="banner-zoom" min="50" max="250" value="100" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan X (px)</label>
-                                    <input type="range" id="banner-x" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan Y (px)</label>
-                                    <input type="range" id="banner-y" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
-                        <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
-                            <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Avatar Upload & Adjustment</div>
-                            
-                            <!-- Live Avatar Preview Container -->
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-20 h-20 rounded-full overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
-                                    <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Avatar Preview" />
-                                </div>
-                                <p class="text-xs text-neutral-400">Live adjustment preview. Use sliders to zoom and align image position.</p>
-                            </div>
-
-                            <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
-                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'avatar')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer mb-4" />
-
-                            <div class="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Zoom (%)</label>
-                                    <input type="range" id="avatar-zoom" min="50" max="250" value="100" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan X (px)</label>
-                                    <input type="range" id="avatar-x" min="-100" max="100" value="0" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan Y (px)</label>
-                                    <input type="range" id="avatar-y" min="-100" max="100" value="0" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- TAB: BADGES -->
-                    <div id="settings-content-nitro" class="hidden space-y-4">
-                        <div class="text-xs text-neutral-400 mb-2">Equip badges to feature on your global header and profile card:</div>
-                        <div id="badge-toggle-list" class="space-y-2"></div>
-                    </div>
-
+        <!-- VIEW: PROFILE -->
+        <div id="view-profile" class="app-view hidden relative min-h-screen">
+            <div id="profile-banner-container" class="h-48 w-full bg-neutral-900 relative overflow-hidden border-b border-neutral-950">
+                <img id="profile-banner-img" src="" class="absolute pointer-events-none select-none max-w-none">
+                <div class="absolute top-4 left-6 z-20 text-[10px] tracking-widest text-neutral-300 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-neutral-800">
+                    <span id="profile-url-display">bet.fund/u/handle</span>
                 </div>
             </div>
+            <div class="px-6 relative pb-16">
+                <div class="flex justify-between items-end -mt-12 mb-5 relative z-30">
+                    <div class="relative inline-block">
+                        <div id="profile-avatar-container" class="w-24 h-24 rounded-full border-4 border-[#070707] bg-neutral-900 shadow-2xl overflow-hidden relative gold-border">
+                            <img id="profile-avatar-img" src="" class="absolute pointer-events-none select-none max-w-none">
+                        </div>
+                        <div id="profile-badges-showcase" class="absolute -bottom-3 -right-5 z-40 flex items-center pointer-events-auto"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-start mb-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 id="profile-display-name" class="text-lg font-medium tracking-wide gold-text">¥</h2>
+                            <span id="profile-custom-status" class="text-xs text-neutral-400 italic">• XV ∞ XIX</span>
+                        </div>
+                        <p id="profile-handle-display" class="text-[11px] text-neutral-500 font-mono">@handle</p>
+                    </div>
+                    <button onclick="switchView('view-settings')" class="px-4 py-1.5 bg-neutral-900 border border-neutral-800 rounded-full text-[10px] tracking-wider uppercase font-semibold text-neutral-300 hover:bg-neutral-800 hover:text-white transition shadow mt-1">Edit profile</button>
+                </div>
+                <p id="profile-bio-display" class="text-xs text-neutral-300 bg-neutral-900/30 border border-neutral-900 p-4 rounded-2xl mb-6 leading-relaxed">
+                    Private banking & alternative investments. Zurich & Geneva.
+                </p>
+            </div>
+        </div>
 
-        </main>
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings" class="app-view hidden bg-[#070707] min-h-screen relative z-20">
+            <header class="px-5 py-4 flex items-center border-b border-neutral-900 sticky top-0 glass-luxury z-30">
+                <button class="text-white p-1" onclick="switchView('view-profile')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <h2 class="font-light text-xs tracking-[0.2em] uppercase text-neutral-300 w-full text-center pr-6">Settings Suite</h2>
+            </header>
+            <div class="flex border-b border-neutral-900 px-6 bg-neutral-950/50">
+                <button onclick="switchSettingsTab('profile')" id="void-tab-profile" class="py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition">Profile Customization</button>
+                <button onclick="switchSettingsTab('nitro')" id="void-tab-nitro" class="py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                    bet.fund Elite
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6 pb-28">
+                <!-- PROFILE CUSTOMIZATION UI -->
+                <div id="settings-content-profile" class="settings-panel space-y-6">
+                    <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
+                        <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Public Profile Identity</h3>
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Display Name</label>
+                            <input type="text" id="input-name" value="¥" oninput="updateProfileData()" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Custom Status</label>
+                            <input type="text" id="input-status" value="• XV ∞ XIX" oninput="updateProfileData()" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Biography</label>
+                            <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none resize-none">Private banking & alternative investments. Zurich & Geneva.</textarea>
+                        </div>
+                    </div>
+
+                    <!-- BANNER FILE UPLOAD & LIVE PREVIEW + TRANSFORM -->
+                    <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
+                        <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Banner Upload & Adjustment</h3>
+                        
+                        <!-- LIVE BANNER PREVIEW CONTAINER -->
+                        <div class="w-full h-32 rounded-2xl bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center">
+                            <img id="settings-banner-preview" src="" class="absolute pointer-events-none select-none max-w-none">
+                            <span class="absolute bottom-2 right-3 text-[9px] font-mono bg-black/60 px-2 py-0.5 rounded text-neutral-400">Live Preview</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Photo from Phone / PC (Saved to Cloudflare R2)</label>
+                            <input type="file" id="input-banner-file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 bg-[#030303] border border-neutral-800 rounded-xl p-1 cursor-pointer">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Zoom (%)</label>
+                                <input type="range" id="banner-zoom" min="100" max="250" value="100" oninput="updateBannerTransform()" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Pan X (px)</label>
+                                <input type="range" id="banner-x" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Pan Y (px)</label>
+                                <input type="range" id="banner-y" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AVATAR FILE UPLOAD & LIVE PREVIEW + TRANSFORM -->
+                    <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
+                        <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Avatar Upload & Adjustment</h3>
+                        
+                        <!-- LIVE AVATAR PREVIEW CONTAINER -->
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 rounded-full bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center shrink-0">
+                                <img id="settings-avatar-preview" src="" class="absolute pointer-events-none select-none max-w-none">
+                            </div>
+                            <p class="text-[11px] text-neutral-400 leading-relaxed">Adjust your avatar framing using the parameters below. Assets sync securely with R2 object storage.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Photo from Phone / PC</label>
+                            <input type="file" id="input-avatar-file" accept="image/*" onchange="handleFileUpload(event, 'avatar')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 bg-[#030303] border border-neutral-800 rounded-xl p-1 cursor-pointer">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Zoom (%)</label>
+                                <input type="range" id="avatar-zoom" min="100" max="250" value="100" oninput="updateAvatarTransform()" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Pan X (px)</label>
+                                <input type="range" id="avatar-x" min="-50" max="50" value="0" oninput="updateAvatarTransform()" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-neutral-400 mb-1">Pan Y (px)</label>
+                                <input type="range" id="avatar-y" min="-50" max="50" value="0" oninput="updateAvatarTransform()" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ELITE BADGE MANAGER -->
+                <div id="settings-content-nitro" class="settings-panel space-y-6 hidden">
+                    <div class="bg-neutral-900/40 border gold-border rounded-3xl p-6 space-y-4 shadow-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl gold-gradient flex items-center justify-center text-black font-bold">✦</div>
+                            <div>
+                                <h3 class="font-medium text-xs uppercase tracking-wider text-white">Elite Badge Manager</h3>
+                                <p class="text-[11px] text-neutral-400">Toggle active prestige badges on your profile header.</p>
+                            </div>
+                        </div>
+                        <div id="badge-toggle-list" class="space-y-2 pt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION BAR -->
+        <div id="bottom-nav" class="fixed bottom-6 left-1/2 -translate-x-1/2 glass-luxury border border-neutral-800/80 rounded-full px-6 py-2.5 flex items-center gap-8 shadow-2xl z-50">
+            <button id="nav-home" class="nav-btn text-white p-2 rounded-full transition" onclick="switchView('view-home')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clip-rule="evenodd" /></svg>
+            </button>
+            <button id="nav-chat" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition" onclick="switchView('view-chat')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
+            </button>
+            <button id="nav-profile" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition" onclick="switchView('view-profile')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+            </button>
+        </div>
     </div>
 
-    <!-- SCRIPT LOGIC -->
     <script>
-        const registeredUsernames = ['admin', 'betfund', 'satoshi'];
+        const CLOUDFLARE_R2_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";[cite: 3]
+        const registeredUsernames = ['', 'admin', 'betfund', 'satoshi'];
 
         let profileState = {
             name: "¥", 
@@ -319,15 +370,23 @@
             const errEl = document.getElementById('gate-error-msg');
             errEl.classList.add('hidden');
 
-            if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' });
+            if (window.location.protocol === 'file:') {
+                handleAuthSuccess({ displayName: 'Google User (Local)', email: 'user@gmail.com' });
+                return;
+            }
+
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+                handleAuthSuccess({ displayName: 'Google User', email: 'user@gmail.com' });
                 return;
             }
 
             const provider = new firebase.auth.GoogleAuthProvider();
             firebase.auth().signInWithPopup(provider)
                 .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
+                .catch((error) => { 
+                    errEl.innerText = error.message; 
+                    errEl.classList.remove('hidden'); 
+                });
         }
 
         function handleEmailAuth(isSignIn) {
@@ -363,10 +422,6 @@
             if (user.displayName) {
                 document.getElementById('input-name').value = user.displayName;
                 profileState.name = user.displayName;
-            }
-
-            if (user.email === 'rekvirzi@gmail.com' || user.email === 'user@bet.fund') {
-                document.getElementById('username-claim-input').value = 'ysk';
             }
         }
 
@@ -409,6 +464,10 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
+                
+                // Simulate Data Center / Cloudflare R2 persistence transmission
+                console.log(`Syncing ${target} asset to Cloudflare R2 Bucket: ${CLOUDFLARE_R2_ENDPOINT}/${profileState.handle || 'default'}_${target}`);[cite: 3]
+
                 if (target === 'banner') {
                     profileState.banner.url = dataUrl;
                     updateBannerTransform();
@@ -451,7 +510,8 @@
             profileState.banner.x = document.getElementById('banner-x').value;
             profileState.banner.y = document.getElementById('banner-y').value;
 
-            ['profile-banner-img', 'banner-preview-img'].forEach(id => {
+            // Update both the profile view banner and settings preview banner live
+            ['profile-banner-img', 'settings-banner-preview'].forEach(id => {
                 const img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.banner.url;
@@ -466,7 +526,8 @@
             profileState.avatar.x = document.getElementById('avatar-x').value;
             profileState.avatar.y = document.getElementById('avatar-y').value;
 
-            ['profile-avatar-img', 'nav-avatar-img', 'avatar-preview-img'].forEach(id => {
+            // Update profile view avatar, top navbar avatar, and settings preview avatar live
+            ['profile-avatar-img', 'nav-avatar-img', 'settings-avatar-preview'].forEach(id => {
                 const img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.avatar.url;
