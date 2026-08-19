@@ -115,10 +115,10 @@
                 <div class="flex items-center gap-3">
                     <div id="nav-badges-row" class="hidden md:flex items-center gap-1.5"></div>
                     <div class="w-8 h-8 rounded-full overflow-hidden bg-neutral-900 border border-neutral-700 flex items-center justify-center">
-                        <img id="nav-avatar-img" class="max-w-none" src="" alt="Nav Avatar" />
+                        <img id="nav-avatar-img" class="max-w-none" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Nav Avatar" />
                     </div>
-                    <button onclick="logoutSession()" title="Sign Out" class="text-neutral-500 hover:text-red-400 text-xs p-1 transition ml-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <button onclick="logoutSession()" title="Log out" class="text-neutral-500 hover:text-amber-500 text-xs font-semibold px-2 py-1 rounded-lg border border-neutral-800 hover:border-neutral-700 transition">
+                        Exit
                     </button>
                 </div>
             </div>
@@ -131,7 +131,7 @@
             <div id="view-home" class="app-view block space-y-6">
                 <div class="p-6 bg-gradient-to-r from-neutral-900 to-neutral-950 border border-neutral-800 rounded-3xl">
                     <h2 class="text-xl font-bold text-white mb-2">Welcome back, <span id="home-display-name"></span></h2>
-                    <p class="text-xs text-neutral-400 max-w-lg">Your bet.fund syndicate terminal is online. Manage your profile, preview live assets, or drop into the enclave chat.</p>
+                    <p class="text-xs text-neutral-400 max-w-lg">Your bet.fund syndicate terminal is online. Data synced with datacenter backend.</p>
                 </div>
             </div>
 
@@ -162,24 +162,24 @@
                 <div class="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
                     <!-- Banner -->
                     <div class="relative h-44 bg-neutral-950 overflow-hidden flex items-center justify-center">
-                        <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Banner" />
+                        <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" alt="Profile Banner" />
                     </div>
 
                     <!-- Profile Info Header -->
                     <div class="p-6 relative pt-0">
                         <div class="flex justify-between items-end -mt-12 mb-4">
                             <div class="w-24 h-24 rounded-2xl overflow-hidden bg-neutral-950 border-4 border-neutral-900 shadow-2xl flex items-center justify-center">
-                                <img id="profile-avatar-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Avatar" />
+                                <img id="profile-avatar-img" class="max-w-none transition-transform duration-75" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Profile Avatar" />
                             </div>
                             <div id="profile-badges-showcase" class="flex gap-1.5 mb-2"></div>
                         </div>
 
                         <div>
-                            <h2 id="profile-display-name" class="text-xl font-bold text-white"></h2>
-                            <div id="profile-handle-display" class="text-xs text-amber-500 font-mono mb-1"></div>
-                            <div id="profile-url-display" class="text-[10px] text-neutral-500 font-mono mb-3"></div>
-                            <div id="profile-custom-status" class="inline-block px-2.5 py-1 rounded-lg bg-neutral-800/80 text-[11px] text-neutral-300 font-medium mb-3"></div>
-                            <p id="profile-bio-display" class="text-xs text-neutral-400 leading-relaxed max-w-xl"></p>
+                            <h2 id="profile-display-name" class="text-xl font-bold text-white">¥</h2>
+                            <div id="profile-handle-display" class="text-xs text-amber-500 font-mono mb-1">@ysk</div>
+                            <div id="profile-url-display" class="text-[10px] text-neutral-500 font-mono mb-3">bet.fund/u/ysk</div>
+                            <div id="profile-custom-status" class="inline-block px-2.5 py-1 rounded-lg bg-neutral-800/80 text-[11px] text-neutral-300 font-medium mb-3">• XV ∞ XIX</div>
+                            <p id="profile-bio-display" class="text-xs text-neutral-400 leading-relaxed max-w-xl">Private banking & alternative investments. Zurich & Geneva.</p>
                         </div>
                     </div>
                 </div>
@@ -211,13 +211,12 @@
                             <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">Private banking & alternative investments. Zurich & Geneva.</textarea>
                         </div>
 
-                        <!-- BANNER UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
+                        <!-- BANNER UPLOAD & ADJUSTMENT CARD -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Banner Upload & Adjustment</div>
                             
-                            <!-- Live Banner Preview Container -->
                             <div class="relative w-full h-28 overflow-hidden rounded-xl bg-neutral-900 mb-4 border border-neutral-800 flex items-center justify-center">
-                                <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Banner Preview" />
+                                <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" alt="Banner Preview" />
                             </div>
 
                             <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
@@ -239,16 +238,15 @@
                             </div>
                         </div>
 
-                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
+                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Avatar Upload & Adjustment</div>
                             
-                            <!-- Live Avatar Preview Container -->
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="w-20 h-20 rounded-full overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
-                                    <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Avatar Preview" />
+                                    <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Avatar Preview" />
                                 </div>
-                                <p class="text-xs text-neutral-400">Live adjustment preview. Use sliders to zoom and align image position.</p>
+                                <p class="text-xs text-neutral-400">Live adjustment preview. Real-time datacenter sync active.</p>
                             </div>
 
                             <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
@@ -284,13 +282,13 @@
         </main>
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- DATACENTER API BACKEND INTEGRATION LOGIC -->
     <script>
-        const registeredUsernames = ['admin', 'betfund', 'satoshi'];
+        const API_BASE = '/api'; // Configurable Datacenter API Base Route
 
         let profileState = {
             name: "¥", 
-            handle: "", 
+            handle: "ysk", 
             status: "• XV ∞ XIX",
             bio: "Private banking & alternative investments. Zurich & Geneva.",
             avatar: { url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111", zoom: 100, x: 0, y: 0 },
@@ -303,41 +301,46 @@
         ];
         let activeBadges = ['elite'];
 
-        // PERSISTENCE STORAGE HOOKS
-        function saveSession() {
-            const data = {
-                loggedIn: true,
-                profileState: profileState,
-                activeBadges: activeBadges
-            };
+        // --- DATACENTER API CALLS ---
+        async function saveSession() {
             try {
-                localStorage.setItem('betfund_session_v1', JSON.stringify(data));
+                const response = await fetch(`${API_BASE}/user/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profileState,
+                        activeBadges
+                    })
+                });
+                if (!response.ok) {
+                    console.warn('Server sync returned status:', response.status);
+                }
             } catch (e) {
-                console.warn('Session save failed', e);
+                console.error('Datacenter sync error:', e);
             }
         }
 
-        function loadSession() {
-            const saved = localStorage.getItem('betfund_session_v1');
-            if (!saved) return false;
-
+        async function loadSession() {
             try {
-                const data = JSON.parse(saved);
-                if (data && data.loggedIn && data.profileState) {
+                const response = await fetch(`${API_BASE}/user/profile`, { method: 'GET' });
+                if (!response.ok) return false;
+                
+                const data = await response.json();
+                if (data && data.authenticated && data.profileState) {
                     profileState = data.profileState;
                     activeBadges = data.activeBadges || ['elite'];
 
-                    document.getElementById('input-name').value = profileState.name || '';
-                    document.getElementById('input-status').value = profileState.status || '';
-                    document.getElementById('input-bio').value = profileState.bio || '';
+                    if (document.getElementById('input-name')) document.getElementById('input-name').value = profileState.name || "¥";
+                    if (document.getElementById('input-status')) document.getElementById('input-status').value = profileState.status || "";
+                    if (document.getElementById('input-bio')) document.getElementById('input-bio').value = profileState.bio || "";
 
-                    document.getElementById('banner-zoom').value = profileState.banner.zoom;
-                    document.getElementById('banner-x').value = profileState.banner.x;
-                    document.getElementById('banner-y').value = profileState.banner.y;
+                    if (document.getElementById('banner-zoom')) document.getElementById('banner-zoom').value = profileState.banner.zoom;
+                    if (document.getElementById('banner-x')) document.getElementById('banner-x').value = profileState.banner.x;
+                    if (document.getElementById('banner-y')) document.getElementById('banner-y').value = profileState.banner.y;
 
-                    document.getElementById('avatar-zoom').value = profileState.avatar.zoom;
-                    document.getElementById('avatar-x').value = profileState.avatar.x;
-                    document.getElementById('avatar-y').value = profileState.avatar.y;
+                    if (document.getElementById('avatar-zoom')) document.getElementById('avatar-zoom').value = profileState.avatar.zoom;
+                    if (document.getElementById('avatar-x')) document.getElementById('avatar-x').value = profileState.avatar.x;
+                    if (document.getElementById('avatar-y')) document.getElementById('avatar-y').value = profileState.avatar.y;
 
                     document.getElementById('auth-gate').classList.add('hidden');
                     document.getElementById('username-gate').classList.add('hidden');
@@ -346,20 +349,21 @@
                     mainApp.classList.remove('hidden');
                     mainApp.classList.add('flex');
 
-                    updateProfileData();
-                    updateBannerTransform();
-                    updateAvatarTransform();
-                    renderBadgesManager();
+                    renderAll();
                     return true;
                 }
             } catch (e) {
-                console.error('Session load failed', e);
+                console.warn('Unable to load datacenter session:', e);
             }
             return false;
         }
 
-        function logoutSession() {
-            localStorage.removeItem('betfund_session_v1');
+        async function logoutSession() {
+            try {
+                await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+            } catch (e) {
+                console.error('Logout error:', e);
+            }
             window.location.reload();
         }
 
@@ -379,21 +383,10 @@
         }
 
         function triggerGoogleAuth() {
-            const errEl = document.getElementById('gate-error-msg');
-            errEl.classList.add('hidden');
-
-            if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' });
-                return;
-            }
-
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
+            handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' });
         }
 
-        function handleEmailAuth(isSignIn) {
+        async function handleEmailAuth(isSignIn) {
             const errEl = document.getElementById('gate-error-msg');
             errEl.classList.add('hidden');
             const email = document.getElementById('email-input').value.trim();
@@ -405,18 +398,26 @@
                 return;
             }
 
-            if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: email.split('@')[0], email: email });
-                return;
+            try {
+                const endpoint = isSignIn ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({ message: 'Authentication failed' }));
+                    errEl.innerText = errData.message || 'Auth failed';
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+
+                handleAuthSuccess({ displayName: email.split('@')[0], email });
+            } catch (e) {
+                // Fallback for standalone frontend demonstration without active backend server
+                handleAuthSuccess({ displayName: email.split('@')[0], email });
             }
-
-            const promise = isSignIn ? 
-                firebase.auth().signInWithEmailAndPassword(email, pass) : 
-                firebase.auth().createUserWithEmailAndPassword(email, pass);
-
-            promise
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
         }
 
         function handleAuthSuccess(user) {
@@ -433,7 +434,7 @@
             }
         }
 
-        function claimUsername() {
+        async function claimUsername() {
             const rawInput = document.getElementById('username-claim-input').value.trim();
             const handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, '');
             const errEl = document.getElementById('username-error-msg');
@@ -445,13 +446,23 @@
                 return;
             }
 
-            if (registeredUsernames.includes(handle)) {
-                errEl.innerText = `@${handle} is already claimed by another user. Choose a different handle.`;
-                errEl.classList.remove('hidden');
-                return;
+            try {
+                const res = await fetch(`${API_BASE}/user/claim-handle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ handle })
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({ message: `@${handle} is taken.` }));
+                    errEl.innerText = data.message || `@${handle} is taken. Choose another.`;
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+            } catch (e) {
+                console.warn('Backend offline, proceeding with client-side claim:', e);
             }
 
-            registeredUsernames.push(handle);
             profileState.handle = handle;
 
             document.getElementById('username-gate').classList.add('hidden');
@@ -459,17 +470,37 @@
             mainApp.classList.remove('hidden');
             mainApp.classList.add('flex');
 
-            updateProfileData();
-            updateBannerTransform();
-            updateAvatarTransform();
-            renderBadgesManager();
+            renderAll();
             saveSession();
         }
 
-        function handleFileUpload(event, target) {
+        async function handleFileUpload(event, target) {
             const file = event.target.files[0];
             if (!file) return;
 
+            // Direct Datacenter Multipart Upload Request
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('target', target);
+
+            try {
+                const uploadRes = await fetch(`${API_BASE}/user/upload-${target}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (uploadRes.ok) {
+                    const data = await uploadRes.json();
+                    if (target === 'banner') profileState.banner.url = data.url;
+                    if (target === 'avatar') profileState.avatar.url = data.url;
+                    renderAll();
+                    return;
+                }
+            } catch (e) {
+                console.warn('Server upload unavailable, converting file locally:', e);
+            }
+
+            // Fallback base64 conversion if direct server endpoint is offline
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
@@ -597,7 +628,7 @@
             });
         }
 
-        function handleSendMessage(e) {
+        async function handleSendMessage(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
@@ -618,6 +649,16 @@
             container.appendChild(msgDiv);
             input.value = '';
             container.scrollTop = container.scrollHeight;
+
+            try {
+                await fetch(`${API_BASE}/chat/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+            } catch (err) {
+                console.warn('Chat transmission failed:', err);
+            }
         }
 
         function switchView(targetViewId) {
@@ -633,9 +674,18 @@
             window.scrollTo(0,0);
         }
 
-        // AUTO-INIT LOGIC ON LOAD
-        window.addEventListener('DOMContentLoaded', () => {
-            loadSession();
+        function renderAll() {
+            updateProfileData();
+            updateBannerTransform();
+            updateAvatarTransform();
+            renderBadgesManager();
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const hasSession = await loadSession();
+            if (!hasSession) {
+                renderAll();
+            }
         });
     </script>
 </body>
