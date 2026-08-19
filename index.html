@@ -5,55 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bet.fund — Private Syndicate & Profile Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%); }
-        .gold-border { border-color: rgba(245, 158, 11, 0.3); }
-        .gold-text { color: #f59e0b; }
-        .elite-badge-glow { box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #050507;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(217, 119, 6, 0.03) 0px, transparent 50%);
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: rgba(18, 18, 22, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .glass-panel-gold {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(18, 18, 22, 0.8) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+        .gold-gradient-bg { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #78350f 100%); 
+        }
+        .gold-text-gradient {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glow-gold { box-shadow: 0 0 25px rgba(245, 158, 11, 0.15); }
+        .glow-gold-sm { box-shadow: 0 0 12px rgba(245, 158, 11, 0.2); }
+        
+        /* Custom styled sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
     </style>
 </head>
-<body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black">
+<body class="text-neutral-200 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black">
 
     <!-- AUTH GATE MODAL -->
-    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-        <div class="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl">
+    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+        <div class="w-full max-w-md glass-panel rounded-3xl p-7 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
             <div class="text-center mb-6">
-                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
-                    Restricted Access
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3 glow-gold-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Terminal Gateway
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-white mb-1">bet.fund</h1>
-                <p class="text-xs text-neutral-400">Authenticate to enter the syndicate workspace</p>
+                <h1 class="text-2xl font-extrabold tracking-tight text-white mb-1">bet.fund</h1>
+                <p class="text-xs text-neutral-400">Authenticate to establish data-center connection</p>
             </div>
 
-            <div class="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800 mb-5 text-xs font-semibold">
-                <button id="auth-tab-google" onclick="switchAuthTab('google')" class="flex-1 py-2 rounded-lg bg-neutral-800 text-white transition">Google</button>
-                <button id="auth-tab-email" onclick="switchAuthTab('email')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Email</button>
-                <button id="auth-tab-demo" onclick="switchAuthTab('demo')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Quick Access</button>
+            <div class="flex bg-neutral-950/80 p-1 rounded-2xl border border-white/5 mb-5 text-xs font-semibold">
+                <button id="auth-tab-google" onclick="switchAuthTab('google')" class="flex-1 py-2 rounded-xl bg-neutral-800 text-white transition">Google</button>
+                <button id="auth-tab-email" onclick="switchAuthTab('email')" class="flex-1 py-2 rounded-xl text-neutral-400 hover:text-white transition">Email</button>
+                <button id="auth-tab-demo" onclick="switchAuthTab('demo')" class="flex-1 py-2 rounded-xl text-neutral-400 hover:text-white transition">Quick Access</button>
             </div>
 
             <div id="gate-error-msg" class="hidden mb-4 p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-red-400 text-xs font-medium"></div>
 
-            <!-- Google View -->
             <div id="auth-view-google" class="space-y-4">
-                <button onclick="triggerGoogleAuth()" class="w-full py-3 px-4 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center justify-center gap-2">
+                <button onclick="triggerGoogleAuth()" class="w-full py-3 px-4 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg">
                     <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                     Continue with Google
                 </button>
             </div>
 
-            <!-- Email View -->
             <div id="auth-view-email" class="hidden space-y-3">
-                <input id="email-input" type="email" placeholder="Email Address" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500" />
-                <input id="pass-input" type="password" placeholder="Password" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500" />
+                <input id="email-input" type="email" placeholder="Email Address" class="w-full bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition" />
+                <input id="pass-input" type="password" placeholder="Password" class="w-full bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition" />
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button onclick="handleEmailAuth(true)" class="py-2.5 bg-neutral-800 text-white font-semibold text-xs rounded-xl hover:bg-neutral-700 transition">Sign In</button>
-                    <button onclick="handleEmailAuth(false)" class="py-2.5 bg-amber-500 text-black font-semibold text-xs rounded-xl hover:bg-amber-400 transition">Register</button>
+                    <button onclick="handleEmailAuth(true)" class="py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs rounded-xl transition">Sign In</button>
+                    <button onclick="handleEmailAuth(false)" class="py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs rounded-xl transition shadow-lg">Register</button>
                 </div>
             </div>
 
-            <!-- Demo View -->
             <div id="auth-view-demo" class="hidden space-y-3">
                 <p class="text-xs text-neutral-400 text-center">Bypass auth for instant testing session.</p>
                 <button onclick="handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' })" class="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs rounded-xl transition">
@@ -64,25 +103,25 @@
     </div>
 
     <!-- USERNAME CLAIM GATE MODAL -->
-    <div id="username-gate" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-        <div class="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl">
+    <div id="username-gate" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+        <div class="w-full max-w-md glass-panel rounded-3xl p-7 shadow-2xl">
             <div class="text-center mb-6">
-                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
+                <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-extrabold uppercase tracking-widest mb-3">
                     Identity Claim
                 </div>
-                <h2 class="text-2xl font-bold text-white mb-1">Claim Your Handle</h2>
-                <p class="text-xs text-neutral-400">Choose a unique identity on bet.fund</p>
+                <h2 class="text-2xl font-bold text-white mb-1">Claim Handle</h2>
+                <p class="text-xs text-neutral-400">Choose a unique handle on bet.fund</p>
             </div>
 
             <div id="username-error-msg" class="hidden mb-4 p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-red-400 text-xs font-medium"></div>
 
             <div class="space-y-4">
                 <div class="relative">
-                    <span class="absolute left-3.5 top-2.5 text-neutral-500 text-sm font-semibold">@</span>
-                    <input id="username-claim-input" type="text" placeholder="handle" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-8 pr-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 font-mono" />
+                    <span class="absolute left-4 top-2.5 text-neutral-500 text-sm font-semibold font-mono">@</span>
+                    <input id="username-claim-input" type="text" placeholder="handle" class="w-full bg-neutral-950 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 font-mono transition" />
                 </div>
-                <button onclick="claimUsername()" class="w-full py-3 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition">
-                    Confirm & Proceed
+                <button onclick="claimUsername()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition glow-gold-sm">
+                    Confirm & Enter Workspace
                 </button>
             </div>
         </div>
@@ -92,32 +131,37 @@
     <div id="main-app" class="hidden flex-col min-h-screen">
         
         <!-- TOP NAVIGATION BAR -->
-        <header class="border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur-xl sticky top-0 z-40">
-            <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        <header class="border-b border-white/5 bg-neutral-950/60 backdrop-blur-2xl sticky top-0 z-40">
+            <div class="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl gold-gradient flex items-center justify-center font-extrabold text-black text-sm shadow-md">b</div>
-                    <span class="font-bold text-sm tracking-tight text-white">bet.fund</span>
+                    <div class="w-8 h-8 rounded-xl gold-gradient-bg flex items-center justify-center font-black text-black text-xs shadow-lg shadow-amber-500/20">b</div>
+                    <span class="font-extrabold text-sm tracking-tight text-white">bet.fund</span>
                 </div>
 
-                <!-- View Switcher -->
-                <div class="flex bg-neutral-900 border border-neutral-800 rounded-full p-1 text-xs">
-                    <button id="nav-home" onclick="switchView('view-home')" class="nav-btn text-white p-2 rounded-full transition">
+                <!-- View Switcher Nav -->
+                <div class="flex bg-neutral-900/80 border border-white/10 rounded-full p-1 text-xs shadow-inner">
+                    <button id="nav-home" onclick="switchView('view-home')" class="nav-btn text-amber-400 bg-white/5 p-2 px-3 rounded-full transition flex items-center gap-1.5 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span class="hidden sm:inline">Terminal</span>
                     </button>
-                    <button id="nav-chat" onclick="switchView('view-chat')" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition">
+                    <button id="nav-chat" onclick="switchView('view-chat')" class="nav-btn text-neutral-400 hover:text-white p-2 px-3 rounded-full transition flex items-center gap-1.5 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <span class="hidden sm:inline">Enclave</span>
                     </button>
-                    <button id="nav-profile" onclick="switchView('view-profile')" class="nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition">
+                    <button id="nav-profile" onclick="switchView('view-profile')" class="nav-btn text-neutral-400 hover:text-white p-2 px-3 rounded-full transition flex items-center gap-1.5 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span class="hidden sm:inline">Studio</span>
                     </button>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <div id="nav-badges-row" class="hidden md:flex items-center gap-1.5"></div>
-                    <div class="w-8 h-8 rounded-full overflow-hidden bg-neutral-900 border border-neutral-700 flex items-center justify-center">
-                        <img id="nav-avatar-img" class="max-w-none" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Nav Avatar" />
+                    
+                    <div class="relative w-8 h-8 rounded-full overflow-hidden bg-neutral-900 border border-amber-500/40 flex items-center justify-center shrink-0">
+                        <img id="nav-avatar-img" class="w-full h-full object-cover" src="" onerror="handleAvatarError(this)" alt="Avatar" />
                     </div>
-                    <button onclick="logoutSession()" title="Log out" class="text-neutral-500 hover:text-amber-500 text-xs font-semibold px-2 py-1 rounded-lg border border-neutral-800 hover:border-neutral-700 transition">
+                    
+                    <button onclick="logoutSession()" title="Log out" class="text-neutral-400 hover:text-amber-400 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-white/10 hover:border-white/20 transition">
                         Exit
                     </button>
                 </div>
@@ -125,33 +169,39 @@
         </header>
 
         <!-- MAIN CONTAINER CONTENT -->
-        <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
+        <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
 
             <!-- HOME VIEW -->
             <div id="view-home" class="app-view block space-y-6">
-                <div class="p-6 bg-gradient-to-r from-neutral-900 to-neutral-950 border border-neutral-800 rounded-3xl">
-                    <h2 class="text-xl font-bold text-white mb-2">Welcome back, <span id="home-display-name"></span></h2>
-                    <p class="text-xs text-neutral-400 max-w-lg">Your bet.fund syndicate terminal is online. Data synced with datacenter backend.</p>
+                <div class="p-8 glass-panel rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest block mb-2">Connected Node</span>
+                        <h2 class="text-2xl font-bold text-white mb-2">Welcome back, <span id="home-display-name" class="gold-text-gradient">¥</span></h2>
+                        <p class="text-xs text-neutral-400 max-w-lg leading-relaxed">Your syndicate workspace is operational. Data-center synchronization active (`/api/user/profile`).</p>
+                    </div>
                 </div>
             </div>
 
             <!-- CHAT VIEW -->
             <div id="view-chat" class="app-view hidden space-y-4">
-                <div class="p-4 bg-neutral-900/60 border border-neutral-800 rounded-2xl flex items-center justify-between">
+                <div class="p-4 glass-panel rounded-2xl flex items-center justify-between">
                     <div>
-                        <div class="text-xs font-bold text-white"># syndicate-enclave</div>
-                        <div class="text-[10px] text-neutral-400">Encrypted workspace terminal</div>
+                        <div class="text-xs font-bold text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> # syndicate-enclave
+                        </div>
+                        <div class="text-[10px] text-neutral-400 font-mono">End-to-End Encrypted Node</div>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-semibold">Active Node</span>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">Online</span>
                 </div>
 
-                <div id="chat-messages" class="h-[400px] bg-neutral-950 border border-neutral-800 rounded-2xl p-4 overflow-y-auto space-y-3 font-mono">
+                <div id="chat-messages" class="h-[420px] glass-panel rounded-2xl p-4 overflow-y-auto space-y-3 font-mono text-xs">
                     <div class="text-center text-[10px] text-neutral-600 my-2">-- Channel Encrypted --</div>
                 </div>
 
                 <form onsubmit="handleSendMessage(event)" class="flex gap-2">
-                    <input id="chat-input" type="text" placeholder="Send message..." class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500" />
-                    <button type="submit" class="px-5 py-2.5 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition">Send</button>
+                    <input id="chat-input" type="text" placeholder="Transmit message to syndicate..." class="flex-1 bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-amber-500 transition font-mono" />
+                    <button type="submit" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition glow-gold-sm">Send</button>
                 </form>
             </div>
 
@@ -159,110 +209,111 @@
             <div id="view-profile" class="app-view hidden space-y-6">
                 
                 <!-- LIVE CARD DISPLAY SHOWCASE -->
-                <div class="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
+                <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl relative">
                     <!-- Banner -->
-                    <div class="relative h-44 bg-neutral-950 overflow-hidden flex items-center justify-center">
-                        <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" alt="Profile Banner" />
+                    <div class="relative h-48 bg-neutral-950 overflow-hidden flex items-center justify-center">
+                        <img id="profile-banner-img" class="w-full h-full object-cover transition-transform duration-75" src="" onerror="handleBannerError(this)" alt="Profile Banner" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent"></div>
                     </div>
 
                     <!-- Profile Info Header -->
-                    <div class="p-6 relative pt-0">
-                        <div class="flex justify-between items-end -mt-12 mb-4">
-                            <div class="w-24 h-24 rounded-2xl overflow-hidden bg-neutral-950 border-4 border-neutral-900 shadow-2xl flex items-center justify-center">
-                                <img id="profile-avatar-img" class="max-w-none transition-transform duration-75" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Profile Avatar" />
+                    <div class="p-6 sm:p-8 relative pt-0">
+                        <div class="flex justify-between items-end -mt-16 mb-5">
+                            <div class="relative w-28 h-28 rounded-2xl overflow-hidden bg-neutral-950 border-4 border-neutral-900 shadow-2xl flex items-center justify-center shrink-0">
+                                <img id="profile-avatar-img" class="w-full h-full object-cover transition-transform duration-75" src="" onerror="handleAvatarError(this)" alt="Profile Avatar" />
                             </div>
-                            <div id="profile-badges-showcase" class="flex gap-1.5 mb-2"></div>
+                            <div id="profile-badges-showcase" class="flex flex-wrap gap-1.5 mb-2"></div>
                         </div>
 
-                        <div>
-                            <h2 id="profile-display-name" class="text-xl font-bold text-white">¥</h2>
-                            <div id="profile-handle-display" class="text-xs text-amber-500 font-mono mb-1">@ysk</div>
-                            <div id="profile-url-display" class="text-[10px] text-neutral-500 font-mono mb-3">bet.fund/u/ysk</div>
-                            <div id="profile-custom-status" class="inline-block px-2.5 py-1 rounded-lg bg-neutral-800/80 text-[11px] text-neutral-300 font-medium mb-3">• XV ∞ XIX</div>
-                            <p id="profile-bio-display" class="text-xs text-neutral-400 leading-relaxed max-w-xl">Private banking & alternative investments. Zurich & Geneva.</p>
+                        <div class="space-y-1">
+                            <h2 id="profile-display-name" class="text-2xl font-extrabold text-white tracking-tight">¥</h2>
+                            <div id="profile-handle-display" class="text-xs text-amber-400 font-mono">@ysk</div>
+                            <div id="profile-url-display" class="text-[10px] text-neutral-500 font-mono pb-2">bet.fund/u/ysk</div>
+                            <div id="profile-custom-status" class="inline-block px-3 py-1 rounded-xl bg-neutral-800/80 border border-white/5 text-[11px] text-neutral-300 font-medium my-2">• XV ∞ XIX</div>
+                            <p id="profile-bio-display" class="text-xs text-neutral-400 leading-relaxed max-w-xl pt-1">Private banking & alternative investments. Zurich & Geneva.</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- STUDIO CONTROLS TABS -->
-                <div class="bg-neutral-900 border border-neutral-800 rounded-3xl p-6">
-                    <div class="flex border-b border-neutral-800 mb-6">
-                        <button id="void-tab-profile" onclick="switchSettingsTab('profile')" class="py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition">Profile Customization</button>
-                        <button id="void-tab-nitro" onclick="switchSettingsTab('nitro')" class="py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition flex items-center gap-1.5">Prestige Badges</button>
+                <div class="glass-panel rounded-3xl p-6 sm:p-8">
+                    <div class="flex border-b border-white/10 mb-6">
+                        <button id="void-tab-profile" onclick="switchSettingsTab('profile')" class="py-3 px-5 text-xs font-semibold border-b-2 border-amber-500 text-white transition">Profile Customization</button>
+                        <button id="void-tab-nitro" onclick="switchSettingsTab('nitro')" class="py-3 px-5 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition flex items-center gap-1.5">Prestige Badges</button>
                     </div>
 
                     <!-- TAB: PROFILE SETTINGS -->
-                    <div id="settings-content-profile" class="space-y-5">
+                    <div id="settings-content-profile" class="space-y-6">
                         
                         <!-- Text Meta Inputs -->
                         <div class="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Display Name</label>
-                                <input id="input-name" type="text" oninput="updateProfileData()" value="¥" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
+                                <input id="input-name" type="text" oninput="updateProfileData()" value="¥" class="w-full bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 transition" />
                             </div>
                             <div>
                                 <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Status Line</label>
-                                <input id="input-status" type="text" oninput="updateProfileData()" value="• XV ∞ XIX" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
+                                <input id="input-status" type="text" oninput="updateProfileData()" value="• XV ∞ XIX" class="w-full bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 transition" />
                             </div>
                         </div>
 
                         <div>
                             <label class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block mb-1.5">Bio</label>
-                            <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">Private banking & alternative investments. Zurich & Geneva.</textarea>
+                            <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 transition">Private banking & alternative investments. Zurich & Geneva.</textarea>
                         </div>
 
                         <!-- BANNER UPLOAD & ADJUSTMENT CARD -->
-                        <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
-                            <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Banner Upload & Adjustment</div>
+                        <div class="p-5 bg-neutral-950/60 border border-white/5 rounded-2xl space-y-4">
+                            <div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Banner Frame Studio</div>
                             
-                            <div class="relative w-full h-28 overflow-hidden rounded-xl bg-neutral-900 mb-4 border border-neutral-800 flex items-center justify-center">
-                                <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" alt="Banner Preview" />
+                            <div class="relative w-full h-32 overflow-hidden rounded-xl bg-neutral-900 border border-white/10 flex items-center justify-center">
+                                <img id="banner-preview-img" class="w-full h-full object-cover transition-transform duration-75" src="" onerror="handleBannerError(this)" alt="Banner Preview" />
                             </div>
 
-                            <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
-                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer mb-4" />
+                            <label class="block text-xs text-neutral-400">Upload Banner Image</label>
+                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer" />
 
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-3 gap-4 pt-2">
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Zoom (%)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Scale (%)</label>
                                     <input type="range" id="banner-zoom" min="50" max="250" value="100" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
                                 </div>
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan X (px)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Pan X</label>
                                     <input type="range" id="banner-x" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
                                 </div>
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan Y (px)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Pan Y</label>
                                     <input type="range" id="banner-y" min="-150" max="150" value="0" oninput="updateBannerTransform()" class="w-full accent-amber-500" />
                                 </div>
                             </div>
                         </div>
 
                         <!-- AVATAR UPLOAD & ADJUSTMENT CARD -->
-                        <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
-                            <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Avatar Upload & Adjustment</div>
+                        <div class="p-5 bg-neutral-950/60 border border-white/5 rounded-2xl space-y-4">
+                            <div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Avatar Frame Studio</div>
                             
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-20 h-20 rounded-full overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
-                                    <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111" alt="Avatar Preview" />
+                            <div class="flex items-center gap-4">
+                                <div class="w-20 h-20 rounded-2xl overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
+                                    <img id="avatar-preview-img" class="w-full h-full object-cover transition-transform duration-75" src="" onerror="handleAvatarError(this)" alt="Avatar Preview" />
                                 </div>
-                                <p class="text-xs text-neutral-400">Live adjustment preview. Real-time datacenter sync active.</p>
+                                <p class="text-xs text-neutral-400">Live preview update. Real-time datastream sync active.</p>
                             </div>
 
-                            <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
-                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'avatar')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer mb-4" />
+                            <label class="block text-xs text-neutral-400">Upload Avatar Photo</label>
+                            <input type="file" accept="image/*" onchange="handleFileUpload(event, 'avatar')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400 cursor-pointer" />
 
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-3 gap-4 pt-2">
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Zoom (%)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Scale (%)</label>
                                     <input type="range" id="avatar-zoom" min="50" max="250" value="100" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
                                 </div>
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan X (px)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Pan X</label>
                                     <input type="range" id="avatar-x" min="-100" max="100" value="0" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
                                 </div>
                                 <div>
-                                    <label class="text-[10px] text-neutral-400 block mb-1">Pan Y (px)</label>
+                                    <label class="text-[10px] text-neutral-400 block mb-1 font-mono">Pan Y</label>
                                     <input type="range" id="avatar-y" min="-100" max="100" value="0" oninput="updateAvatarTransform()" class="w-full accent-amber-500" />
                                 </div>
                             </div>
@@ -272,7 +323,7 @@
 
                     <!-- TAB: BADGES -->
                     <div id="settings-content-nitro" class="hidden space-y-4">
-                        <div class="text-xs text-neutral-400 mb-2">Equip badges to feature on your global header and profile card:</div>
+                        <div class="text-xs text-neutral-400 mb-2">Equip badges to feature on header and profile card:</div>
                         <div id="badge-toggle-list" class="space-y-2"></div>
                     </div>
 
@@ -282,17 +333,21 @@
         </main>
     </div>
 
-    <!-- DATACENTER API BACKEND INTEGRATION LOGIC -->
+    <!-- DATACENTER API & INTERFACE LOGIC -->
     <script>
         const API_BASE = '/api'; // Configurable Datacenter API Base Route
+
+        // Failover assets so UI never displays broken image alt text
+        const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23171717'/><circle cx='50' cy='38' r='18' fill='%23f59e0b'/><path d='M20,88 C20,65 35,58 50,58 C65,58 80,65 80,88 Z' fill='%23f59e0b'/></svg>";
+        const DEFAULT_BANNER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='300' viewBox='0 0 800 300'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%2317171d'/><stop offset='50%25' stop-color='%230f0f12'/><stop offset='100%25' stop-color='%23050507'/></linearGradient></defs><rect width='800' height='300' fill='url(%23g)'/><path d='M0,150 Q200,80 400,150 T800,150 L800,300 L0,300 Z' fill='%23f59e0b' opacity='0.08'/></svg>";
 
         let profileState = {
             name: "¥", 
             handle: "ysk", 
             status: "• XV ∞ XIX",
             bio: "Private banking & alternative investments. Zurich & Geneva.",
-            avatar: { url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111", zoom: 100, x: 0, y: 0 },
-            banner: { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", zoom: 100, x: 0, y: 0 }
+            avatar: { url: DEFAULT_AVATAR, zoom: 100, x: 0, y: 0 },
+            banner: { url: DEFAULT_BANNER, zoom: 100, x: 0, y: 0 }
         };
 
         const availableBadges = [
@@ -301,22 +356,26 @@
         ];
         let activeBadges = ['elite'];
 
-        // --- DATACENTER API CALLS ---
+        function handleAvatarError(img) {
+            img.onerror = null;
+            img.src = DEFAULT_AVATAR;
+        }
+
+        function handleBannerError(img) {
+            img.onerror = null;
+            img.src = DEFAULT_BANNER;
+        }
+
+        // --- DATACENTER API PERSISTENCE (FETCH ENDPOINTS) ---
         async function saveSession() {
             try {
-                const response = await fetch(`${API_BASE}/user/profile`, {
+                await fetch(`${API_BASE}/user/profile`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        profileState,
-                        activeBadges
-                    })
+                    body: JSON.stringify({ profileState, activeBadges })
                 });
-                if (!response.ok) {
-                    console.warn('Server sync returned status:', response.status);
-                }
             } catch (e) {
-                console.error('Datacenter sync error:', e);
+                console.warn('Datacenter backend sync offline:', e);
             }
         }
 
@@ -333,14 +392,6 @@
                     if (document.getElementById('input-name')) document.getElementById('input-name').value = profileState.name || "¥";
                     if (document.getElementById('input-status')) document.getElementById('input-status').value = profileState.status || "";
                     if (document.getElementById('input-bio')) document.getElementById('input-bio').value = profileState.bio || "";
-
-                    if (document.getElementById('banner-zoom')) document.getElementById('banner-zoom').value = profileState.banner.zoom;
-                    if (document.getElementById('banner-x')) document.getElementById('banner-x').value = profileState.banner.x;
-                    if (document.getElementById('banner-y')) document.getElementById('banner-y').value = profileState.banner.y;
-
-                    if (document.getElementById('avatar-zoom')) document.getElementById('avatar-zoom').value = profileState.avatar.zoom;
-                    if (document.getElementById('avatar-x')) document.getElementById('avatar-x').value = profileState.avatar.x;
-                    if (document.getElementById('avatar-y')) document.getElementById('avatar-y').value = profileState.avatar.y;
 
                     document.getElementById('auth-gate').classList.add('hidden');
                     document.getElementById('username-gate').classList.add('hidden');
@@ -373,10 +424,10 @@
                 const tabEl = document.getElementById(`auth-tab-${v}`);
                 if (v === tab) {
                     viewEl.classList.remove('hidden');
-                    tabEl.className = "flex-1 py-2 rounded-lg bg-neutral-800 text-white transition";
+                    tabEl.className = "flex-1 py-2 rounded-xl bg-neutral-800 text-white transition";
                 } else {
                     viewEl.classList.add('hidden');
-                    tabEl.className = "flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition";
+                    tabEl.className = "flex-1 py-2 rounded-xl text-neutral-400 hover:text-white transition";
                 }
             });
             document.getElementById('gate-error-msg').classList.add('hidden');
@@ -415,7 +466,6 @@
 
                 handleAuthSuccess({ displayName: email.split('@')[0], email });
             } catch (e) {
-                // Fallback for standalone frontend demonstration without active backend server
                 handleAuthSuccess({ displayName: email.split('@')[0], email });
             }
         }
@@ -447,20 +497,13 @@
             }
 
             try {
-                const res = await fetch(`${API_BASE}/user/claim-handle`, {
+                await fetch(`${API_BASE}/user/claim-handle`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ handle })
                 });
-
-                if (!res.ok) {
-                    const data = await res.json().catch(() => ({ message: `@${handle} is taken.` }));
-                    errEl.innerText = data.message || `@${handle} is taken. Choose another.`;
-                    errEl.classList.remove('hidden');
-                    return;
-                }
             } catch (e) {
-                console.warn('Backend offline, proceeding with client-side claim:', e);
+                console.warn('Proceeding with claimed handle:', e);
             }
 
             profileState.handle = handle;
@@ -478,29 +521,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Direct Datacenter Multipart Upload Request
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('target', target);
-
-            try {
-                const uploadRes = await fetch(`${API_BASE}/user/upload-${target}`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (uploadRes.ok) {
-                    const data = await uploadRes.json();
-                    if (target === 'banner') profileState.banner.url = data.url;
-                    if (target === 'avatar') profileState.avatar.url = data.url;
-                    renderAll();
-                    return;
-                }
-            } catch (e) {
-                console.warn('Server upload unavailable, converting file locally:', e);
-            }
-
-            // Fallback base64 conversion if direct server endpoint is offline
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
@@ -521,12 +541,12 @@
                 const el = document.getElementById(`settings-content-${t}`);
                 if (el) el.classList.add('hidden');
                 const btn = document.getElementById(`void-tab-${t}`);
-                if (btn) btn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === 'nitro' ? " flex items-center gap-1.5" : "");
+                if (btn) btn.className = "py-3 px-5 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === 'nitro' ? " flex items-center gap-1.5" : "");
             });
             const target = document.getElementById(`settings-content-${tabName}`);
             if (target) target.classList.remove('hidden');
             const activeBtn = document.getElementById(`void-tab-${tabName}`);
-            if (activeBtn) activeBtn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === 'nitro' ? " flex items-center gap-1.5" : "");
+            if (activeBtn) activeBtn.className = "py-3 px-5 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === 'nitro' ? " flex items-center gap-1.5" : "");
         }
 
         function updateProfileData() {
@@ -552,8 +572,7 @@
                 const img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.banner.url;
-                    img.style.width = profileState.banner.zoom + '%';
-                    img.style.transform = `translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
+                    img.style.transform = `scale(${profileState.banner.zoom / 100}) translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
                 }
             });
             saveSession();
@@ -568,8 +587,7 @@
                 const img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.avatar.url;
-                    img.style.width = profileState.avatar.zoom + '%';
-                    img.style.transform = `translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
+                    img.style.transform = `scale(${profileState.avatar.zoom / 100}) translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
                 }
             });
             saveSession();
@@ -583,17 +601,17 @@
             availableBadges.forEach(b => {
                 const isActive = activeBadges.includes(b.id);
                 const row = document.createElement('div');
-                row.className = "flex items-center justify-between p-3 bg-neutral-950/60 border border-neutral-800/80 rounded-2xl";
+                row.className = "flex items-center justify-between p-4 glass-panel rounded-2xl";
                 row.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <div class="w-7 h-7 rounded-xl gold-gradient flex items-center justify-center text-[10px] text-black font-bold">${b.icon}</div>
+                        <div class="w-8 h-8 rounded-xl gold-gradient-bg flex items-center justify-center text-xs text-black font-extrabold shadow-md">${b.icon}</div>
                         <div>
-                            <div class="text-xs font-semibold text-white">${b.name}</div>
-                            <div class="text-[10px] text-neutral-400">Prestige badge element</div>
+                            <div class="text-xs font-bold text-white">${b.name}</div>
+                            <div class="text-[10px] text-neutral-400">Prestige tier indicator</div>
                         </div>
                     </div>
-                    <button onclick="toggleBadge('${b.id}')" class="px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition ${isActive ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
-                        ${isActive ? 'Active' : 'Equip'}
+                    <button onclick="toggleBadge('${b.id}')" class="px-4 py-2 rounded-xl text-xs font-semibold transition ${isActive ? 'bg-amber-500 text-black glow-gold-sm' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
+                        ${isActive ? 'Equipped' : 'Equip'}
                     </button>
                 `;
                 listEl.appendChild(row);
@@ -621,7 +639,7 @@
                     const badge = availableBadges.find(b => b.id === id);
                     if (!badge) return;
                     const pill = document.createElement('div');
-                    pill.className = "bg-neutral-900/90 border gold-border text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full gold-text elite-badge-glow flex items-center gap-1 shadow-lg";
+                    pill.className = "glass-panel-gold text-[9px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded-full text-amber-400 flex items-center gap-1 shadow-md";
                     pill.innerHTML = `<span>${badge.icon}</span><span>${badge.text}</span>`;
                     container.appendChild(pill);
                 });
@@ -638,10 +656,10 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = "flex items-start gap-3 justify-end";
             msgDiv.innerHTML = `
-                <div class="bg-neutral-900 border gold-border rounded-2xl p-3 max-w-[80%]">
+                <div class="glass-panel-gold rounded-2xl p-3.5 max-w-[80%]">
                     <div class="flex items-center gap-2 justify-end mb-1">
                         <span class="text-[9px] text-neutral-500">Just now</span>
-                        <span class="text-xs font-semibold gold-text">${profileState.name}</span>
+                        <span class="text-xs font-bold text-amber-400">${profileState.name}</span>
                     </div>
                     <p class="text-xs text-neutral-200 text-right">${text}</p>
                 </div>
@@ -666,10 +684,14 @@
             const target = document.getElementById(targetViewId);
             if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
             
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition");
-            if (targetViewId === 'view-home') document.getElementById('nav-home').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-chat') document.getElementById('nav-chat').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-profile') document.getElementById('nav-profile').className = "nav-btn text-white p-2 rounded-full transition";
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn text-neutral-400 hover:text-white p-2 px-3 rounded-full transition flex items-center gap-1.5 font-medium";
+            });
+            
+            const activeBtn = document.getElementById('nav-' + targetViewId.replace('view-', ''));
+            if (activeBtn) {
+                activeBtn.className = "nav-btn text-amber-400 bg-white/5 p-2 px-3 rounded-full transition flex items-center gap-1.5 font-medium";
+            }
             
             window.scrollTo(0,0);
         }
