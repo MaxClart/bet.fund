@@ -158,7 +158,7 @@
                 
                 <!-- LIVE CARD DISPLAY SHOWCASE -->
                 <div class="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <!-- Banner -->
+                    <!-- Banner Showcase -->
                     <div class="relative h-44 bg-neutral-950 overflow-hidden flex items-center justify-center">
                         <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Banner" />
                     </div>
@@ -209,10 +209,11 @@
                             <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">Private banking & alternative investments. Zurich & Geneva.</textarea>
                         </div>
 
-                        <!-- BANNER UPLOAD & ADJUSTMENT CARD -->
+                        <!-- BANNER UPLOAD & ADJUSTMENT CARD WITH EMBEDDED PREVIEW -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Banner Upload & Adjustment</div>
                             
+                            <!-- Inline Banner Preview Box -->
                             <div class="relative w-full h-28 overflow-hidden rounded-xl bg-neutral-900 mb-4 border border-neutral-800 flex items-center justify-center">
                                 <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Banner Preview" />
                             </div>
@@ -236,15 +237,16 @@
                             </div>
                         </div>
 
-                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD -->
+                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD WITH EMBEDDED PREVIEW -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Avatar Upload & Adjustment</div>
                             
+                            <!-- Inline Avatar Preview Box -->
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="w-20 h-20 rounded-full overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
                                     <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Avatar Preview" />
                                 </div>
-                                <p class="text-xs text-neutral-400">Live adjustment preview. Use sliders to zoom and align image position.</p>
+                                <p class="text-xs text-neutral-400">Live avatar preview window. Move sliders below to adjust frame alignment.</p>
                             </div>
 
                             <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
@@ -280,7 +282,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT LOGIC WITH LOCALSTORAGE PERSISTENCE -->
+    <!-- SCRIPT LOGIC -->
     <script>
         const registeredUsernames = ['admin', 'betfund', 'satoshi'];
 
@@ -299,7 +301,7 @@
         ];
         let activeBadges = ['elite'];
 
-        // PERSISTENCE FUNCTIONS
+        // LOCALSTORAGE PERSISTENCE
         function saveProfileState() {
             localStorage.setItem('betfund_profile_state', JSON.stringify(profileState));
             localStorage.setItem('betfund_active_badges', JSON.stringify(activeBadges));
@@ -311,18 +313,13 @@
             const savedBadges = localStorage.getItem('betfund_active_badges');
             const savedUsernames = localStorage.getItem('betfund_registered_usernames');
 
-            if (savedProfile) {
-                profileState = JSON.parse(savedProfile);
-            }
-            if (savedBadges) {
-                activeBadges = JSON.parse(savedBadges);
-            }
+            if (savedProfile) profileState = JSON.parse(savedProfile);
+            if (savedBadges) activeBadges = JSON.parse(savedBadges);
             if (savedUsernames) {
                 const parsed = JSON.parse(savedUsernames);
                 parsed.forEach(u => { if (!registeredUsernames.includes(u)) registeredUsernames.push(u); });
             }
 
-            // Populate form inputs
             if (profileState.name) document.getElementById('input-name').value = profileState.name;
             if (profileState.status) document.getElementById('input-status').value = profileState.status;
             if (profileState.bio) document.getElementById('input-bio').value = profileState.bio;
@@ -338,7 +335,6 @@
                 document.getElementById('avatar-y').value = profileState.avatar.y || 0;
             }
 
-            // Restore active session if logged in
             const activeSession = localStorage.getItem('betfund_session');
             if (activeSession && profileState.handle) {
                 document.getElementById('auth-gate').classList.add('hidden');
@@ -417,10 +413,8 @@
 
         function handleAuthSuccess(user) {
             localStorage.setItem('betfund_session', JSON.stringify({ email: user.email, displayName: user.displayName }));
-
             document.getElementById('auth-gate').classList.add('hidden');
 
-            // If user already claimed a handle, skip username gate
             if (profileState.handle) {
                 document.getElementById('username-gate').classList.add('hidden');
                 const mainApp = document.getElementById('main-app');
@@ -460,9 +454,7 @@
                 return;
             }
 
-            if (!registeredUsernames.includes(handle)) {
-                registeredUsernames.push(handle);
-            }
+            if (!registeredUsernames.includes(handle)) registeredUsernames.push(handle);
             profileState.handle = handle;
             saveProfileState();
 
@@ -647,7 +639,6 @@
             window.scrollTo(0,0);
         }
 
-        // Initialize state from local storage on load
         window.addEventListener('DOMContentLoaded', loadProfileState);
     </script>
 </body>
