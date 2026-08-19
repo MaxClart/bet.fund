@@ -317,289 +317,294 @@
     </div>
 
     <script>
-        const registeredUsernames = ['ysk', 'admin', 'betfund', 'satoshi'];
+    // Removed 'ysk' from reserved list so it is available
+    const registeredUsernames = ['admin', 'betfund', 'satoshi'];
 
-        let profileState = {
-            name: "¥", 
-            handle: "", 
-            status: "• XV ∞ XIX",
-            bio: "Private banking & alternative investments. Zurich & Geneva.",
-            avatar: { url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111", zoom: 100, x: 0, y: 0 },
-            banner: { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", zoom: 100, x: 0, y: 0 }
-        };
+    let profileState = {
+        name: "¥", 
+        handle: "", 
+        status: "• XV ∞ XIX",
+        bio: "Private banking & alternative investments. Zurich & Geneva.",
+        avatar: { url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ysk&backgroundColor=111", zoom: 100, x: 0, y: 0 },
+        banner: { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", zoom: 100, x: 0, y: 0 }
+    };
 
-        const availableBadges = [
-            { id: 'elite', name: 'bet.fund Elite Member', text: 'ELITE', icon: '✦' },
-            { id: 'boost', name: 'Syndicate Booster Lv. 4', text: 'BOOSTER', icon: '✦' }
-        ];
-        let activeBadges = ['elite'];
+    const availableBadges = [
+        { id: 'elite', name: 'bet.fund Elite Member', text: 'ELITE', icon: '✦' },
+        { id: 'boost', name: 'Syndicate Booster Lv. 4', text: 'BOOSTER', icon: '✦' }
+    ];
+    let activeBadges = ['elite'];
 
-        function switchAuthTab(tab) {
-            ['google', 'email', 'demo'].forEach(v => {
-                const viewEl = document.getElementById(`auth-view-${v}`);
-                const tabEl = document.getElementById(`auth-tab-${v}`);
-                if (v === tab) {
-                    viewEl.classList.remove('hidden');
-                    tabEl.className = "flex-1 py-2 rounded-lg bg-neutral-800 text-white transition";
-                } else {
-                    viewEl.classList.add('hidden');
-                    tabEl.className = "flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition";
-                }
-            });
-            document.getElementById('gate-error-msg').classList.add('hidden');
-        }
-
-        function triggerGoogleAuth() {
-            const errEl = document.getElementById('gate-error-msg');
-            errEl.classList.add('hidden');
-
-            // Handle local file protocol (file://) without throwing Firebase errors
-            if (window.location.protocol === 'file:') {
-                handleAuthSuccess({ displayName: 'Google User (Local)', email: 'user@gmail.com' });
-                return;
-            }
-
-            if (typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: 'Google User', email: 'user@gmail.com' });
-                return;
-            }
-
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { 
-                    errEl.innerText = error.message; 
-                    errEl.classList.remove('hidden'); 
-                });
-        }
-
-        function handleEmailAuth(isSignIn) {
-            const errEl = document.getElementById('gate-error-msg');
-            errEl.classList.add('hidden');
-            const email = document.getElementById('email-input').value.trim();
-            const pass = document.getElementById('pass-input').value.trim();
-
-            if (!email || !pass) {
-                errEl.innerText = "Please enter email and password.";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: email.split('@')[0], email: email });
-                return;
-            }
-
-            const promise = isSignIn ? 
-                firebase.auth().signInWithEmailAndPassword(email, pass) : 
-                firebase.auth().createUserWithEmailAndPassword(email, pass);
-
-            promise
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
-        }
-
-        function handleAuthSuccess(user) {
-            document.getElementById('auth-gate').classList.add('hidden');
-            document.getElementById('username-gate').classList.remove('hidden');
-
-            if (user.displayName) {
-                document.getElementById('input-name').value = user.displayName;
-                profileState.name = user.displayName;
-            }
-        }
-
-        function claimUsername() {
-            const rawInput = document.getElementById('username-claim-input').value.trim();
-            const handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            const errEl = document.getElementById('username-error-msg');
-            errEl.classList.add('hidden');
-
-            if (!handle || handle.length < 3) {
-                errEl.innerText = "Username must be at least 3 characters long.";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            if (registeredUsernames.includes(handle)) {
-                errEl.innerText = `@${handle} is already claimed by another user. Choose a different handle.`;
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            registeredUsernames.push(handle);
-            profileState.handle = handle;
-
-            document.getElementById('username-gate').classList.add('hidden');
-            const mainApp = document.getElementById('main-app');
-            mainApp.classList.remove('hidden');
-            mainApp.classList.add('flex');
-
-            updateProfileData();
-            updateBannerTransform();
-            updateAvatarTransform();
-            renderBadgesManager();
-        }
-
-        function handleFileUpload(event, target) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const dataUrl = e.target.result;
-                if (target === 'banner') {
-                    profileState.banner.url = dataUrl;
-                    updateBannerTransform();
-                } else if (target === 'avatar') {
-                    profileState.avatar.url = dataUrl;
-                    updateAvatarTransform();
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function switchSettingsTab(tabName) {
-            ['profile', 'nitro'].forEach(t => {
-                const el = document.getElementById(`settings-content-${t}`);
-                if (el) el.classList.add('hidden');
-                const btn = document.getElementById(`void-tab-${t}`);
-                if (btn) btn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === 'nitro' ? " flex items-center gap-1.5" : "");
-            });
-            const target = document.getElementById(`settings-content-${tabName}`);
-            if (target) target.classList.remove('hidden');
-            const activeBtn = document.getElementById(`void-tab-${tabName}`);
-            if (activeBtn) activeBtn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === 'nitro' ? " flex items-center gap-1.5" : "");
-        }
-
-        function updateProfileData() {
-            profileState.name = document.getElementById('input-name').value;
-            profileState.status = document.getElementById('input-status').value;
-            profileState.bio = document.getElementById('input-bio').value;
-
-            document.getElementById('profile-display-name').innerText = profileState.name;
-            document.getElementById('home-display-name').innerText = profileState.name;
-            document.getElementById('profile-handle-display').innerText = "@" + profileState.handle;
-            document.getElementById('profile-url-display').innerText = "bet.fund/u/" + profileState.handle;
-            document.getElementById('profile-custom-status').innerText = profileState.status;
-            document.getElementById('profile-bio-display').innerText = profileState.bio;
-        }
-
-        function updateBannerTransform() {
-            profileState.banner.zoom = document.getElementById('banner-zoom').value;
-            profileState.banner.x = document.getElementById('banner-x').value;
-            profileState.banner.y = document.getElementById('banner-y').value;
-
-            const img = document.getElementById('profile-banner-img');
-            if (img) {
-                img.src = profileState.banner.url;
-                img.style.width = profileState.banner.zoom + '%';
-                img.style.transform = `translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
-            }
-        }
-
-        function updateAvatarTransform() {
-            profileState.avatar.zoom = document.getElementById('avatar-zoom').value;
-            profileState.avatar.x = document.getElementById('avatar-x').value;
-            profileState.avatar.y = document.getElementById('avatar-y').value;
-
-            ['profile-avatar-img', 'nav-avatar-img'].forEach(id => {
-                const img = document.getElementById(id);
-                if (img) {
-                    img.src = profileState.avatar.url;
-                    img.style.width = profileState.avatar.zoom + '%';
-                    img.style.transform = `translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
-                }
-            });
-        }
-
-        function renderBadgesManager() {
-            const listEl = document.getElementById('badge-toggle-list');
-            if (!listEl) return;
-            listEl.innerHTML = '';
-
-            availableBadges.forEach(b => {
-                const isActive = activeBadges.includes(b.id);
-                const row = document.createElement('div');
-                row.className = "flex items-center justify-between p-3 bg-neutral-950/60 border border-neutral-800/80 rounded-2xl";
-                row.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-7 h-7 rounded-xl gold-gradient flex items-center justify-center text-[10px] text-black font-bold">${b.icon}</div>
-                        <div>
-                            <div class="text-xs font-semibold text-white">${b.name}</div>
-                            <div class="text-[10px] text-neutral-400">Prestige badge element</div>
-                        </div>
-                    </div>
-                    <button onclick="toggleBadge('${b.id}')" class="px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition ${isActive ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
-                        ${isActive ? 'Active' : 'Equip'}
-                    </button>
-                `;
-                listEl.appendChild(row);
-            });
-            renderProfileBadgesHeader();
-        }
-
-        function toggleBadge(id) {
-            if (activeBadges.includes(id)) {
-                activeBadges = activeBadges.filter(b => b !== id);
+    function switchAuthTab(tab) {
+        ['google', 'email', 'demo'].forEach(v => {
+            const viewEl = document.getElementById(`auth-view-${v}`);
+            const tabEl = document.getElementById(`auth-tab-${v}`);
+            if (v === tab) {
+                viewEl.classList.remove('hidden');
+                tabEl.className = "flex-1 py-2 rounded-lg bg-neutral-800 text-white transition";
             } else {
-                activeBadges.push(id);
+                viewEl.classList.add('hidden');
+                tabEl.className = "flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition";
             }
-            renderBadgesManager();
+        });
+        document.getElementById('gate-error-msg').classList.add('hidden');
+    }
+
+    function triggerGoogleAuth() {
+        const errEl = document.getElementById('gate-error-msg');
+        errEl.classList.add('hidden');
+
+        if (window.location.protocol === 'file:') {
+            handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' });
+            return;
         }
 
-        function renderProfileBadgesHeader() {
-            ['nav-badges-row', 'profile-badges-showcase'].forEach(containerId => {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.innerHTML = '';
-                
-                activeBadges.forEach(id => {
-                    const badge = availableBadges.find(b => b.id === id);
-                    if (!badge) return;
-                    const pill = document.createElement('div');
-                    pill.className = "bg-neutral-900/90 border gold-border text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full gold-text elite-badge-glow flex items-center gap-1 shadow-lg";
-                    pill.innerHTML = `<span>${badge.icon}</span><span>${badge.text}</span>`;
-                    container.appendChild(pill);
-                });
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            handleAuthSuccess({ displayName: 'Ysk', email: 'rekvirzi@gmail.com' });
+            return;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then((result) => handleAuthSuccess(result.user))
+            .catch((error) => { 
+                errEl.innerText = error.message; 
+                errEl.classList.remove('hidden'); 
             });
+    }
+
+    function handleEmailAuth(isSignIn) {
+        const errEl = document.getElementById('gate-error-msg');
+        errEl.classList.add('hidden');
+        const email = document.getElementById('email-input').value.trim();
+        const pass = document.getElementById('pass-input').value.trim();
+
+        if (!email || !pass) {
+            errEl.innerText = "Please enter email and password.";
+            errEl.classList.remove('hidden');
+            return;
         }
 
-        function handleSendMessage(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text) return;
+        if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
+            handleAuthSuccess({ displayName: email.split('@')[0], email: email });
+            return;
+        }
 
-            const container = document.getElementById('chat-messages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = "flex items-start gap-3 justify-end";
-            msgDiv.innerHTML = `
-                <div class="bg-neutral-900 border gold-border rounded-2xl p-3 max-w-[80%]">
-                    <div class="flex items-center gap-2 justify-end mb-1">
-                        <span class="text-[9px] text-neutral-500">Just now</span>
-                        <span class="text-xs font-semibold gold-text">${profileState.name}</span>
+        const promise = isSignIn ? 
+            firebase.auth().signInWithEmailAndPassword(email, pass) : 
+            firebase.auth().createUserWithEmailAndPassword(email, pass);
+
+        promise
+            .then((result) => handleAuthSuccess(result.user))
+            .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
+    }
+
+    function handleAuthSuccess(user) {
+        document.getElementById('auth-gate').classList.add('hidden');
+        document.getElementById('username-gate').classList.remove('hidden');
+
+        if (user.displayName) {
+            document.getElementById('input-name').value = user.displayName;
+            profileState.name = user.displayName;
+        }
+
+        // Auto-prefill handle as 'ysk' for rekvirzi@gmail.com
+        if (user.email === 'rekvirzi@gmail.com' || user.email === 'user@bet.fund') {
+            document.getElementById('username-claim-input').value = 'ysk';
+        }
+    }
+
+    function claimUsername() {
+        const rawInput = document.getElementById('username-claim-input').value.trim();
+        const handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        const errEl = document.getElementById('username-error-msg');
+        errEl.classList.add('hidden');
+
+        if (!handle || handle.length < 3) {
+            errEl.innerText = "Username must be at least 3 characters long.";
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        if (registeredUsernames.includes(handle)) {
+            errEl.innerText = `@${handle} is already claimed by another user. Choose a different handle.`;
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        registeredUsernames.push(handle);
+        profileState.handle = handle;
+
+        document.getElementById('username-gate').classList.add('hidden');
+        const mainApp = document.getElementById('main-app');
+        mainApp.classList.remove('hidden');
+        mainApp.classList.add('flex');
+
+        updateProfileData();
+        updateBannerTransform();
+        updateAvatarTransform();
+        renderBadgesManager();
+    }
+
+    function handleFileUpload(event, target) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            if (target === 'banner') {
+                profileState.banner.url = dataUrl;
+                updateBannerTransform();
+            } else if (target === 'avatar') {
+                profileState.avatar.url = dataUrl;
+                updateAvatarTransform();
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function switchSettingsTab(tabName) {
+        ['profile', 'nitro'].forEach(t => {
+            const el = document.getElementById(`settings-content-${t}`);
+            if (el) el.classList.add('hidden');
+            const btn = document.getElementById(`void-tab-${t}`);
+            if (btn) btn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === 'nitro' ? " flex items-center gap-1.5" : "");
+        });
+        const target = document.getElementById(`settings-content-${tabName}`);
+        if (target) target.classList.remove('hidden');
+        const activeBtn = document.getElementById(`void-tab-${tabName}`);
+        if (activeBtn) activeBtn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === 'nitro' ? " flex items-center gap-1.5" : "");
+    }
+
+    function updateProfileData() {
+        profileState.name = document.getElementById('input-name').value;
+        profileState.status = document.getElementById('input-status').value;
+        profileState.bio = document.getElementById('input-bio').value;
+
+        document.getElementById('profile-display-name').innerText = profileState.name;
+        document.getElementById('home-display-name').innerText = profileState.name;
+        document.getElementById('profile-handle-display').innerText = "@" + profileState.handle;
+        document.getElementById('profile-url-display').innerText = "bet.fund/u/" + profileState.handle;
+        document.getElementById('profile-custom-status').innerText = profileState.status;
+        document.getElementById('profile-bio-display').innerText = profileState.bio;
+    }
+
+    function updateBannerTransform() {
+        profileState.banner.zoom = document.getElementById('banner-zoom').value;
+        profileState.banner.x = document.getElementById('banner-x').value;
+        profileState.banner.y = document.getElementById('banner-y').value;
+
+        const img = document.getElementById('profile-banner-img');
+        if (img) {
+            img.src = profileState.banner.url;
+            img.style.width = profileState.banner.zoom + '%';
+            img.style.transform = `translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
+        }
+    }
+
+    function updateAvatarTransform() {
+        profileState.avatar.zoom = document.getElementById('avatar-zoom').value;
+        profileState.avatar.x = document.getElementById('avatar-x').value;
+        profileState.avatar.y = document.getElementById('avatar-y').value;
+
+        ['profile-avatar-img', 'nav-avatar-img'].forEach(id => {
+            const img = document.getElementById(id);
+            if (img) {
+                img.src = profileState.avatar.url;
+                img.style.width = profileState.avatar.zoom + '%';
+                img.style.transform = `translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
+            }
+        });
+    }
+
+    function renderBadgesManager() {
+        const listEl = document.getElementById('badge-toggle-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        availableBadges.forEach(b => {
+            const isActive = activeBadges.includes(b.id);
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between p-3 bg-neutral-950/60 border border-neutral-800/80 rounded-2xl";
+            row.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-xl gold-gradient flex items-center justify-center text-[10px] text-black font-bold">${b.icon}</div>
+                    <div>
+                        <div class="text-xs font-semibold text-white">${b.name}</div>
+                        <div class="text-[10px] text-neutral-400">Prestige badge element</div>
                     </div>
-                    <p class="text-xs text-neutral-200 text-right">${text}</p>
                 </div>
+                <button onclick="toggleBadge('${b.id}')" class="px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition ${isActive ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
+                    ${isActive ? 'Active' : 'Equip'}
+                </button>
             `;
-            container.appendChild(msgDiv);
-            input.value = '';
-            container.scrollTop = container.scrollHeight;
-        }
+            listEl.appendChild(row);
+        });
+        renderProfileBadgesHeader();
+    }
 
-        function switchView(targetViewId) {
-            document.querySelectorAll('.app-view').forEach(v => { v.classList.remove('block'); v.classList.add('hidden'); });
-            const target = document.getElementById(targetViewId);
-            if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
-            
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition");
-            if (targetViewId === 'view-home') document.getElementById('nav-home').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-chat') document.getElementById('nav-chat').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-profile') document.getElementById('nav-profile').className = "nav-btn text-white p-2 rounded-full transition";
-            
-            window.scrollTo(0,0);
+    function toggleBadge(id) {
+        if (activeBadges.includes(id)) {
+            activeBadges = activeBadges.filter(b => b !== id);
+        } else {
+            activeBadges.push(id);
         }
-    </script>
+        renderBadgesManager();
+    }
+
+    function renderProfileBadgesHeader() {
+        ['nav-badges-row', 'profile-badges-showcase'].forEach(containerId => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            activeBadges.forEach(id => {
+                const badge = availableBadges.find(b => b.id === id);
+                if (!badge) return;
+                const pill = document.createElement('div');
+                pill.className = "bg-neutral-900/90 border gold-border text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full gold-text elite-badge-glow flex items-center gap-1 shadow-lg";
+                pill.innerHTML = `<span>${badge.icon}</span><span>${badge.text}</span>`;
+                container.appendChild(pill);
+            });
+        });
+    }
+
+    function handleSendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const container = document.getElementById('chat-messages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = "flex items-start gap-3 justify-end";
+        msgDiv.innerHTML = `
+            <div class="bg-neutral-900 border gold-border rounded-2xl p-3 max-w-[80%]">
+                <div class="flex items-center gap-2 justify-end mb-1">
+                    <span class="text-[9px] text-neutral-500">Just now</span>
+                    <span class="text-xs font-semibold gold-text">${profileState.name}</span>
+                </div>
+                <p class="text-xs text-neutral-200 text-right">${text}</p>
+            </div>
+        `;
+        container.appendChild(msgDiv);
+        input.value = '';
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function switchView(targetViewId) {
+        document.querySelectorAll('.app-view').forEach(v => { v.classList.remove('block'); v.classList.add('hidden'); });
+        const target = document.getElementById(targetViewId);
+        if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
+        
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition");
+        if (targetViewId === 'view-home') document.getElementById('nav-home').className = "nav-btn text-white p-2 rounded-full transition";
+        if (targetViewId === 'view-chat') document.getElementById('nav-chat').className = "nav-btn text-white p-2 rounded-full transition";
+        if (targetViewId === 'view-profile') document.getElementById('nav-profile').className = "nav-btn text-white p-2 rounded-full transition";
+        
+        window.scrollTo(0,0);
+    }
+</script>
 </body>
 </html>
