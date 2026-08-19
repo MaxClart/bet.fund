@@ -1,0 +1,8 @@
+name = "void-profile-api"
+main = "worker.js"
+compatibility_date = "2026-08-19"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "void-db"
+database_id = "4c042e0d-fcf4-46fb-a262-a32f3b5a2bc7"
