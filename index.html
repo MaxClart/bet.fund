@@ -159,7 +159,7 @@
                             <span class="text-xs font-semibold gold-text">Zurich Node</span>
                             <span class="text-[9px] text-neutral-500">11:45 AM</span>
                         </div>
-                        <p class="text-xs text-neutral-300">Profile transform suite active with direct device file pickers & Cloudflare R2 bucket linkage[cite: 3].</p>
+                        <p class="text-xs text-neutral-300">Profile transform suite active with direct device file pickers & Cloudflare R2 bucket linkage.</p>
                     </div>
                 </div>
             </div>
@@ -333,7 +333,7 @@
     </div>
 
     <script>
-        const CLOUDFLARE_R2_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";[cite: 3]
+        const CLOUDFLARE_R2_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";
         const registeredUsernames = ['', 'admin', 'betfund', 'satoshi'];
 
         let profileState = {
@@ -466,7 +466,7 @@
                 const dataUrl = e.target.result;
                 
                 // Simulate Data Center / Cloudflare R2 persistence transmission
-                console.log(`Syncing ${target} asset to Cloudflare R2 Bucket: ${CLOUDFLARE_R2_ENDPOINT}/${profileState.handle || 'default'}_${target}`);[cite: 3]
+                console.log(`Syncing ${target} asset to Cloudflare R2 Bucket: ${CLOUDFLARE_R2_ENDPOINT}/${profileState.handle || 'default'}_${target}`);
 
                 if (target === 'banner') {
                     profileState.banner.url = dataUrl;
