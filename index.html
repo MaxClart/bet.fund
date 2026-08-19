@@ -117,7 +117,9 @@
                     <div class="w-8 h-8 rounded-full overflow-hidden bg-neutral-900 border border-neutral-700 flex items-center justify-center">
                         <img id="nav-avatar-img" class="max-w-none" src="" alt="Nav Avatar" />
                     </div>
-                    <button onclick="logoutSession()" class="text-[10px] text-neutral-400 hover:text-red-400 transition px-2 py-1 rounded-lg border border-neutral-800">Logout</button>
+                    <button onclick="logoutSession()" title="Sign Out" class="text-neutral-500 hover:text-red-400 text-xs p-1 transition ml-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
                 </div>
             </div>
         </header>
@@ -158,7 +160,7 @@
                 
                 <!-- LIVE CARD DISPLAY SHOWCASE -->
                 <div class="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <!-- Banner Showcase -->
+                    <!-- Banner -->
                     <div class="relative h-44 bg-neutral-950 overflow-hidden flex items-center justify-center">
                         <img id="profile-banner-img" class="max-w-none transition-transform duration-75" src="" alt="Profile Banner" />
                     </div>
@@ -209,11 +211,11 @@
                             <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">Private banking & alternative investments. Zurich & Geneva.</textarea>
                         </div>
 
-                        <!-- BANNER UPLOAD & ADJUSTMENT CARD WITH EMBEDDED PREVIEW -->
+                        <!-- BANNER UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Banner Upload & Adjustment</div>
                             
-                            <!-- Inline Banner Preview Box -->
+                            <!-- Live Banner Preview Container -->
                             <div class="relative w-full h-28 overflow-hidden rounded-xl bg-neutral-900 mb-4 border border-neutral-800 flex items-center justify-center">
                                 <img id="banner-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Banner Preview" />
                             </div>
@@ -237,16 +239,16 @@
                             </div>
                         </div>
 
-                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD WITH EMBEDDED PREVIEW -->
+                        <!-- AVATAR UPLOAD & ADJUSTMENT CARD WITH LIVE PREVIEW -->
                         <div class="p-4 bg-neutral-950/80 border border-neutral-800/80 rounded-2xl">
                             <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-3">Avatar Upload & Adjustment</div>
                             
-                            <!-- Inline Avatar Preview Box -->
+                            <!-- Live Avatar Preview Container -->
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="w-20 h-20 rounded-full overflow-hidden bg-neutral-900 border-2 border-amber-500/50 flex items-center justify-center shrink-0">
                                     <img id="avatar-preview-img" class="max-w-none transition-transform duration-75" src="" alt="Avatar Preview" />
                                 </div>
-                                <p class="text-xs text-neutral-400">Live avatar preview window. Move sliders below to adjust frame alignment.</p>
+                                <p class="text-xs text-neutral-400">Live adjustment preview. Use sliders to zoom and align image position.</p>
                             </div>
 
                             <label class="block text-xs text-neutral-400 mb-2">Upload Photo from Phone / PC</label>
@@ -301,57 +303,63 @@
         ];
         let activeBadges = ['elite'];
 
-        // LOCALSTORAGE PERSISTENCE
-        function saveProfileState() {
-            localStorage.setItem('betfund_profile_state', JSON.stringify(profileState));
-            localStorage.setItem('betfund_active_badges', JSON.stringify(activeBadges));
-            localStorage.setItem('betfund_registered_usernames', JSON.stringify(registeredUsernames));
+        // PERSISTENCE STORAGE HOOKS
+        function saveSession() {
+            const data = {
+                loggedIn: true,
+                profileState: profileState,
+                activeBadges: activeBadges
+            };
+            try {
+                localStorage.setItem('betfund_session_v1', JSON.stringify(data));
+            } catch (e) {
+                console.warn('Session save failed', e);
+            }
         }
 
-        function loadProfileState() {
-            const savedProfile = localStorage.getItem('betfund_profile_state');
-            const savedBadges = localStorage.getItem('betfund_active_badges');
-            const savedUsernames = localStorage.getItem('betfund_registered_usernames');
+        function loadSession() {
+            const saved = localStorage.getItem('betfund_session_v1');
+            if (!saved) return false;
 
-            if (savedProfile) profileState = JSON.parse(savedProfile);
-            if (savedBadges) activeBadges = JSON.parse(savedBadges);
-            if (savedUsernames) {
-                const parsed = JSON.parse(savedUsernames);
-                parsed.forEach(u => { if (!registeredUsernames.includes(u)) registeredUsernames.push(u); });
-            }
+            try {
+                const data = JSON.parse(saved);
+                if (data && data.loggedIn && data.profileState) {
+                    profileState = data.profileState;
+                    activeBadges = data.activeBadges || ['elite'];
 
-            if (profileState.name) document.getElementById('input-name').value = profileState.name;
-            if (profileState.status) document.getElementById('input-status').value = profileState.status;
-            if (profileState.bio) document.getElementById('input-bio').value = profileState.bio;
-            
-            if (profileState.banner) {
-                document.getElementById('banner-zoom').value = profileState.banner.zoom || 100;
-                document.getElementById('banner-x').value = profileState.banner.x || 0;
-                document.getElementById('banner-y').value = profileState.banner.y || 0;
-            }
-            if (profileState.avatar) {
-                document.getElementById('avatar-zoom').value = profileState.avatar.zoom || 100;
-                document.getElementById('avatar-x').value = profileState.avatar.x || 0;
-                document.getElementById('avatar-y').value = profileState.avatar.y || 0;
-            }
+                    document.getElementById('input-name').value = profileState.name || '';
+                    document.getElementById('input-status').value = profileState.status || '';
+                    document.getElementById('input-bio').value = profileState.bio || '';
 
-            const activeSession = localStorage.getItem('betfund_session');
-            if (activeSession && profileState.handle) {
-                document.getElementById('auth-gate').classList.add('hidden');
-                document.getElementById('username-gate').classList.add('hidden');
-                const mainApp = document.getElementById('main-app');
-                mainApp.classList.remove('hidden');
-                mainApp.classList.add('flex');
+                    document.getElementById('banner-zoom').value = profileState.banner.zoom;
+                    document.getElementById('banner-x').value = profileState.banner.x;
+                    document.getElementById('banner-y').value = profileState.banner.y;
 
-                updateProfileData();
-                updateBannerTransform();
-                updateAvatarTransform();
-                renderBadgesManager();
+                    document.getElementById('avatar-zoom').value = profileState.avatar.zoom;
+                    document.getElementById('avatar-x').value = profileState.avatar.x;
+                    document.getElementById('avatar-y').value = profileState.avatar.y;
+
+                    document.getElementById('auth-gate').classList.add('hidden');
+                    document.getElementById('username-gate').classList.add('hidden');
+                    
+                    const mainApp = document.getElementById('main-app');
+                    mainApp.classList.remove('hidden');
+                    mainApp.classList.add('flex');
+
+                    updateProfileData();
+                    updateBannerTransform();
+                    updateAvatarTransform();
+                    renderBadgesManager();
+                    return true;
+                }
+            } catch (e) {
+                console.error('Session load failed', e);
             }
+            return false;
         }
 
         function logoutSession() {
-            localStorage.removeItem('betfund_session');
+            localStorage.removeItem('betfund_session_v1');
             window.location.reload();
         }
 
@@ -412,27 +420,16 @@
         }
 
         function handleAuthSuccess(user) {
-            localStorage.setItem('betfund_session', JSON.stringify({ email: user.email, displayName: user.displayName }));
             document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('username-gate').classList.remove('hidden');
 
-            if (profileState.handle) {
-                document.getElementById('username-gate').classList.add('hidden');
-                const mainApp = document.getElementById('main-app');
-                mainApp.classList.remove('hidden');
-                mainApp.classList.add('flex');
-                updateProfileData();
-                updateBannerTransform();
-                updateAvatarTransform();
-                renderBadgesManager();
-            } else {
-                document.getElementById('username-gate').classList.remove('hidden');
-                if (user.displayName) {
-                    document.getElementById('input-name').value = user.displayName;
-                    profileState.name = user.displayName;
-                }
-                if (user.email === 'rekvirzi@gmail.com' || user.email === 'user@bet.fund') {
-                    document.getElementById('username-claim-input').value = 'ysk';
-                }
+            if (user.displayName) {
+                document.getElementById('input-name').value = user.displayName;
+                profileState.name = user.displayName;
+            }
+
+            if (user.email === 'rekvirzi@gmail.com' || user.email === 'user@bet.fund') {
+                document.getElementById('username-claim-input').value = 'ysk';
             }
         }
 
@@ -448,15 +445,14 @@
                 return;
             }
 
-            if (registeredUsernames.includes(handle) && profileState.handle !== handle) {
+            if (registeredUsernames.includes(handle)) {
                 errEl.innerText = `@${handle} is already claimed by another user. Choose a different handle.`;
                 errEl.classList.remove('hidden');
                 return;
             }
 
-            if (!registeredUsernames.includes(handle)) registeredUsernames.push(handle);
+            registeredUsernames.push(handle);
             profileState.handle = handle;
-            saveProfileState();
 
             document.getElementById('username-gate').classList.add('hidden');
             const mainApp = document.getElementById('main-app');
@@ -467,6 +463,7 @@
             updateBannerTransform();
             updateAvatarTransform();
             renderBadgesManager();
+            saveSession();
         }
 
         function handleFileUpload(event, target) {
@@ -483,7 +480,7 @@
                     profileState.avatar.url = dataUrl;
                     updateAvatarTransform();
                 }
-                saveProfileState();
+                saveSession();
             };
             reader.readAsDataURL(file);
         }
@@ -512,8 +509,7 @@
             document.getElementById('profile-url-display').innerText = "bet.fund/u/" + profileState.handle;
             document.getElementById('profile-custom-status').innerText = profileState.status;
             document.getElementById('profile-bio-display').innerText = profileState.bio;
-
-            saveProfileState();
+            saveSession();
         }
 
         function updateBannerTransform() {
@@ -529,8 +525,7 @@
                     img.style.transform = `translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
                 }
             });
-
-            saveProfileState();
+            saveSession();
         }
 
         function updateAvatarTransform() {
@@ -546,8 +541,7 @@
                     img.style.transform = `translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
                 }
             });
-
-            saveProfileState();
+            saveSession();
         }
 
         function renderBadgesManager() {
@@ -582,8 +576,8 @@
             } else {
                 activeBadges.push(id);
             }
-            saveProfileState();
             renderBadgesManager();
+            saveSession();
         }
 
         function renderProfileBadgesHeader() {
@@ -639,7 +633,10 @@
             window.scrollTo(0,0);
         }
 
-        window.addEventListener('DOMContentLoaded', loadProfileState);
+        // AUTO-INIT LOGIC ON LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSession();
+        });
     </script>
 </body>
 </html>
