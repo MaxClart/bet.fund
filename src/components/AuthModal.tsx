@@ -26,12 +26,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Validate existing token session on load
   useEffect(() => {
     const checkExistingSession = async () => {
       const token = localStorage.getItem('bet_fund_token');
       if (!token) return;
 
       try {
+        console.log('[AuthModal] Validating active session token...');
         const response = await fetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -40,13 +42,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         if (response.ok) {
           const data = (await response.json()) as AuthApiResponse;
           if (data.user) {
+            console.log('[AuthModal] Session restored for user:', data.user.email);
             onAuthSuccess(data.user, token);
           }
         } else {
+          console.warn('[AuthModal] Invalid or expired token session removed.');
           localStorage.removeItem('bet_fund_token');
         }
       } catch (err) {
-        console.error('Session validation error:', err);
+        console.error('[AuthModal] Session validation request error:', err);
       }
     };
 
@@ -55,15 +59,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
+
+    console.log('[AuthModal] Form submit event intercepted');
     
     setError(null);
+
+    if (!email || !password || (!isLogin && !username)) {
+      const missingFieldMsg = 'Please fill out all required fields.';
+      console.warn('[AuthModal] Validation failed:', missingFieldMsg);
+      setError(missingFieldMsg);
+      return;
+    }
+
     setIsLoading(true);
 
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     const payload = isLogin ? { email, password } : { email, password, username };
+
+    console.log(`[AuthModal] Sending POST request to ${endpoint}`, payload);
 
     try {
       const response = await fetch(endpoint, {
@@ -74,6 +90,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         body: JSON.stringify(payload),
       });
 
+      console.log(`[AuthModal] Response status received: ${response.status}`);
       const data = (await response.json()) as AuthApiResponse;
 
       if (!response.ok) {
@@ -81,27 +98,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       }
 
       if (data.token && data.user) {
+        console.log('[AuthModal] Auth successful, storing token:', data.token);
         localStorage.setItem('bet_fund_token', data.token);
         onAuthSuccess(data.user, data.token);
         onClose();
+      } else {
+        throw new Error('Invalid response structure from authentication server.');
       }
     } catch (err: any) {
+      console.error('[AuthModal] Authentication error caught:', err);
       setError(err.message || 'Network error. Unable to connect to backend.');
     } finally {
       setIsLoading(false);
+      console.log('[AuthModal] Form processing complete, loading state reset.');
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      console.log('[AuthModal] Backdrop clicked, closing modal');
+      onClose();
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md pointer-events-auto">
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md pointer-events-auto cursor-pointer"
+    >
       <div 
-        className="relative w-full max-w-md p-8 rounded-2xl border border-amber-500/20 bg-zinc-950/90 shadow-[0_0_50px_rgba(212,175,55,0.15)] text-zinc-100 pointer-events-auto"
+        className="relative w-full max-w-md p-8 rounded-2xl border border-amber-500/20 bg-zinc-950/90 shadow-[0_0_50px_rgba(212,175,55,0.15)] text-zinc-100 pointer-events-auto cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors text-xl font-bold"
+          onClick={() => {
+            console.log('[AuthModal] Close button clicked');
+            onClose();
+          }}
+          className="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors text-xl font-bold cursor-pointer"
           type="button"
+          aria-label="Close modal"
         >
           ✕
         </button>
@@ -116,7 +152,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg border border-red-500/30 bg-red-950/40 text-red-300 text-sm text-center">
+          <div className="mb-4 p-3 rounded-lg border border-red-500/30 bg-red-950/40 text-red-300 text-sm text-center font-medium">
             {error}
           </div>
         )}
@@ -131,7 +167,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="HighRoller99"
-                className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600"
+                className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600 pointer-events-auto"
               />
             </div>
           )}
@@ -144,7 +180,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="vip@bet.fund"
-              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600 pointer-events-auto"
             />
           </div>
 
@@ -156,14 +192,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-zinc-600 pointer-events-auto"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-6 rounded-xl font-bold text-zinc-950 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3.5 px-6 rounded-xl font-bold text-zinc-950 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer pointer-events-auto"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -180,10 +216,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           <button
             type="button"
             onClick={() => {
+              console.log('[AuthModal] Toggling auth mode');
               setIsLogin(!isLogin);
               setError(null);
             }}
-            className="text-xs text-zinc-400 hover:text-amber-400 transition-colors underline underline-offset-4 cursor-pointer"
+            className="text-xs text-zinc-400 hover:text-amber-400 transition-colors underline underline-offset-4 cursor-pointer pointer-events-auto"
           >
             {isLogin ? "Don't have an account? Register" : 'Already have an account? Log In'}
           </button>

@@ -1,5 +1,5 @@
 export interface Env {
-  DB: D1Database;
+  DB: D1Database; // Bound to D1 ID: 57f76835-3ec2-4b94-99f1-bd645b4bd1c5
   JWT_SECRET?: string;
 }
 
@@ -105,17 +105,22 @@ export default {
 
     const url = new URL(request.url);
 
-    // Initialize D1 Table Schema if not existing
-    await env.DB.prepare(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        username TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        salt TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `).run();
+    // Ensure D1 table schema exists on database 57f76835-3ec2-4b94-99f1-bd645b4bd1c5
+    try {
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          username TEXT NOT NULL,
+          password_hash TEXT NOT NULL,
+          salt TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `).run();
+    } catch (dbInitErr: any) {
+      console.error('D1 Table Initialization Error:', dbInitErr);
+      return jsonResponse({ error: 'Database initialization failed.' }, 500);
+    }
 
     try {
       if (url.pathname === '/api/auth/register' && request.method === 'POST') {
@@ -204,6 +209,7 @@ export default {
 
       return jsonResponse({ error: 'Endpoint not found' }, 404);
     } catch (err: any) {
+      console.error('Worker API Error:', err);
       return jsonResponse({ error: err.message || 'Internal Server Error' }, 500);
     }
   },
