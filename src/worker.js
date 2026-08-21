@@ -25,9 +25,17 @@ export default {
             });
         }
 
+        // Dual Auth Resolution: Check Authorization Bearer header first, fallback to Cookie
+        const authHeader = request.headers.get('Authorization') || '';
         const cookieHeader = request.headers.get('Cookie') || '';
-        const match = cookieHeader.match(/session=([^;]+)/);
-        const token = match ? match[1] : null;
+        
+        let token = null;
+        if (authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7).trim();
+        } else {
+            const match = cookieHeader.match(/session=([^;]+)/);
+            if (match) token = match[1];
+        }
 
         async function getAuthUser() {
             if (!token) return null;
@@ -40,7 +48,7 @@ export default {
                      WHERE s.token = ?`
                 ).bind(token).first();
             } catch (err) {
-                console.error("D1 Auth Query Exception:", err);
+                console.error("D1 Auth Query Error:", err);
                 return null;
             }
         }
@@ -74,9 +82,9 @@ export default {
                     .run();
 
                 return jsonResponse(
-                    { user: { id: userId, username, bio: '', status: '', avatar_url: '', banner_url: '', is_elite: 1 } },
+                    { token: sessionToken, user: { id: userId, username, bio: '', status: '', avatar_url: '', banner_url: '', is_elite: 1 } },
                     201,
-                    { 'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/` }
+                    { 'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000` }
                 );
             }
 
@@ -106,9 +114,9 @@ export default {
                 ).bind(user.id).first();
 
                 return jsonResponse(
-                    { user: fullUser },
+                    { token: sessionToken, user: fullUser },
                     200,
-                    { 'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/` }
+                    { 'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000` }
                 );
             }
 
@@ -200,7 +208,7 @@ export default {
                 return new Response(object.body, { headers });
             }
 
-            // 8. SERVE STATIC ASSETS FOR NON-API ROUTES
+            // 8. SERVE STATIC ASSETS (Fixes 404 Routing)
             if (env.ASSETS) {
                 return await env.ASSETS.fetch(request);
             }
@@ -208,7 +216,7 @@ export default {
             return jsonResponse({ error: 'Not Found' }, 404);
 
         } catch (err) {
-            console.error("Worker Catch Execution Error:", err);
+            console.error("Worker Execution Error:", err);
             return jsonResponse({ error: 'Internal Server Error', details: err.message }, 500);
         }
     }
