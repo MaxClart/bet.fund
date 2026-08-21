@@ -9,19 +9,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
         .gold-gradient { background: linear-gradient(135deg, rgba(191, 149, 63, 0.95) 0%, rgba(252, 246, 186, 0.95) 25%, rgba(179, 135, 40, 0.95) 50%, rgba(251, 245, 183, 0.95) 75%, rgba(170, 119, 28, 0.95) 100%); }
         .gold-text { background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .gold-border { border-color: rgba(191, 149, 63, 0.4); }
         .gold-bg-glow { box-shadow: 0 0 20px rgba(191, 149, 63, 0.2); }
         .glass-luxury { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        
-        @keyframes elitePulse {
-            0% { box-shadow: 0 0 0 0 rgba(191, 149, 63, 0.3); }
-            70% { box-shadow: 0 0 0 8px rgba(191, 149, 63, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(191, 149, 63, 0.3); }
-        }
-        .elite-badge-glow { animation: elitePulse 2s infinite; }
         input[type=range] { accent-color: #bf953f; }
     </style>
 </head>
@@ -82,7 +74,6 @@
                     <div class="w-9 h-9 rounded-full border border-neutral-800 overflow-hidden cursor-pointer relative bg-neutral-900" onclick="switchView('view-profile')">
                         <img id="nav-avatar-img" src="" class="absolute pointer-events-none select-none max-w-none">
                     </div>
-                    <div id="nav-badges-row" class="flex items-center gap-1.5"></div>
                 </div>
                 <h1 class="text-lg font-light tracking-[0.3em] uppercase gold-text">bet.fund</h1>
                 <div class="flex items-center gap-3">
@@ -120,7 +111,6 @@
                         <div id="profile-avatar-container" class="w-24 h-24 rounded-full border-4 border-[#070707] bg-neutral-900 shadow-2xl overflow-hidden relative gold-border">
                             <img id="profile-avatar-img" src="" class="absolute pointer-events-none select-none max-w-none">
                         </div>
-                        <div id="profile-badges-showcase" class="absolute -bottom-3 -right-5 z-40 flex items-center pointer-events-auto"></div>
                     </div>
                 </div>
                 <div class="flex justify-between items-start mb-3">
@@ -171,12 +161,10 @@
                     <!-- BANNER UPLOAD & TRANSFORM -->
                     <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
                         <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Banner Upload & Adjustment</h3>
-                        
                         <div class="w-full h-32 rounded-2xl bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center">
                             <img id="settings-banner-preview" src="" class="absolute pointer-events-none select-none max-w-none">
                             <span class="absolute bottom-2 right-3 text-[9px] font-mono bg-black/60 px-2 py-0.5 rounded text-neutral-400">Live Preview</span>
                         </div>
-
                         <div>
                             <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Banner Image to R2</label>
                             <input type="file" id="input-banner-file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 bg-[#030303] border border-neutral-800 rounded-xl p-1 cursor-pointer">
@@ -200,14 +188,12 @@
                     <!-- AVATAR UPLOAD & TRANSFORM -->
                     <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
                         <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Avatar Upload & Adjustment</h3>
-                        
                         <div class="flex items-center gap-4">
                             <div class="w-20 h-20 rounded-full bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center shrink-0">
                                 <img id="settings-avatar-preview" src="" class="absolute pointer-events-none select-none max-w-none">
                             </div>
                             <p class="text-[11px] text-neutral-400 leading-relaxed">Adjust framing parameters below.</p>
                         </div>
-
                         <div>
                             <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Avatar Image to R2</label>
                             <input type="file" id="input-avatar-file" accept="image/*" onchange="handleFileUpload(event, 'avatar')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 bg-[#030303] border border-neutral-800 rounded-xl p-1 cursor-pointer">
@@ -246,7 +232,6 @@
     <script>
         let currentUsername = null;
         
-        // Strict empty state initialized - No hardcoded bio strings
         let profileState = {
             name: "",
             handle: "",
@@ -260,7 +245,6 @@
             checkExistingSession();
         });
 
-        // Hydrate from Cloudflare D1 on page load
         async function checkExistingSession() {
             try {
                 const res = await fetch("/api/auth/me", { credentials: "include" });
@@ -324,7 +308,7 @@
                     credentials: "include",
                     body: JSON.stringify({ username, password })
                 });
-                const data = await res.json();
+                const data = await res.json().catch(() => ({ error: "Invalid JSON response" }));
                 if (!res.ok) {
                     showGateError(data.error || "Login failed");
                     return;
@@ -349,13 +333,16 @@
                     credentials: "include",
                     body: JSON.stringify({ username, password })
                 });
-                const data = await res.json();
+
+                const data = await res.json().catch(() => ({ error: "Invalid response from server" }));
+
                 if (!res.ok) {
-                    showGateError(data.error || "Registration failed");
+                    showGateError(data.error || data.details || "Registration failed");
                     return;
                 }
                 hydrateUserProfile(data.user);
             } catch (err) {
+                console.error("Register Error:", err);
                 showGateError("Network error. Unable to register.");
             }
         }
@@ -412,7 +399,6 @@
             document.getElementById("profile-bio-display").innerText = profileState.bio;
         }
 
-        // Send file stream to Cloudflare R2 and retrieve URL
         async function handleFileUpload(event, targetType) {
             const file = event.target.files[0];
             if (!file) return;
@@ -444,7 +430,6 @@
             }
         }
 
-        // Save Profile metadata and transforms into Cloudflare D1
         async function saveProfileState() {
             syncLocalStateFromInputs();
 
