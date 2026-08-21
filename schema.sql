@@ -11,6 +11,7 @@ CREATE TABLE users (
     banner_url TEXT DEFAULT '',
     avatar_transform TEXT DEFAULT '{"zoom":100,"x":0,"y":0}',
     banner_transform TEXT DEFAULT '{"zoom":100,"x":0,"y":0}',
+    is_elite INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

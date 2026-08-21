@@ -2,7 +2,6 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        // Helper: Define CORS Headers
         const origin = request.headers.get('Origin') || '*';
         const corsHeaders = {
             'Access-Control-Allow-Origin': origin,
@@ -11,12 +10,10 @@ export default {
             'Access-Control-Allow-Credentials': 'true',
         };
 
-        // 0. HANDLE CORS PREFLIGHT (OPTIONS)
         if (request.method === 'OPTIONS') {
             return new Response(null, { status: 204, headers: corsHeaders });
         }
 
-        // Helper: Response wrapper with CORS
         function jsonResponse(data, status = 200, extraHeaders = {}) {
             return new Response(JSON.stringify(data), {
                 status,
@@ -32,25 +29,24 @@ export default {
         const match = cookieHeader.match(/session=([^;]+)/);
         const token = match ? match[1] : null;
 
-        // Session Authenticator Helper
         async function getAuthUser() {
             if (!token) return null;
             try {
                 return await env.DB.prepare(
                     `SELECT u.id, u.username, u.bio, u.status, u.avatar_url, u.banner_url, 
-                            u.avatar_transform, u.banner_transform 
+                            u.avatar_transform, u.banner_transform, u.is_elite 
                      FROM sessions s 
                      JOIN users u ON s.user_id = u.id 
                      WHERE s.token = ?`
                 ).bind(token).first();
             } catch (err) {
-                console.error("D1 Auth Query Error:", err);
+                console.error("D1 Auth Query Exception:", err);
                 return null;
             }
         }
 
         try {
-            // 1. REGISTER
+            // 1. REGISTER (Strictly No Default Avatar & Bio = "")
             if (url.pathname === '/api/auth/register' && request.method === 'POST') {
                 const body = await request.json().catch(() => null);
                 if (!body || !body.username || !body.password) {
@@ -59,7 +55,6 @@ export default {
 
                 const { username, password } = body;
 
-                // Check duplicate user
                 const existing = await env.DB.prepare('SELECT id FROM users WHERE username = ?')
                     .bind(username)
                     .first();
@@ -70,8 +65,8 @@ export default {
 
                 const userId = crypto.randomUUID();
                 await env.DB.prepare(
-                    'INSERT INTO users (id, username, password, bio, status) VALUES (?, ?, ?, ?, ?)'
-                ).bind(userId, username, password, '', '').run();
+                    'INSERT INTO users (id, username, password, bio, status, avatar_url, banner_url, is_elite) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                ).bind(userId, username, password, '', '', '', '', 1).run();
 
                 const sessionToken = crypto.randomUUID();
                 await env.DB.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)')
@@ -79,7 +74,7 @@ export default {
                     .run();
 
                 return jsonResponse(
-                    { user: { id: userId, username, bio: '', status: '', avatar_url: '', banner_url: '' } },
+                    { user: { id: userId, username, bio: '', status: '', avatar_url: '', banner_url: '', is_elite: 1 } },
                     201,
                     { 'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/` }
                 );
@@ -107,7 +102,7 @@ export default {
                     .run();
 
                 const fullUser = await env.DB.prepare(
-                    'SELECT id, username, bio, status, avatar_url, banner_url, avatar_transform, banner_transform FROM users WHERE id = ?'
+                    'SELECT id, username, bio, status, avatar_url, banner_url, avatar_transform, banner_transform, is_elite FROM users WHERE id = ?'
                 ).bind(user.id).first();
 
                 return jsonResponse(
@@ -213,7 +208,7 @@ export default {
             return jsonResponse({ error: 'Not Found' }, 404);
 
         } catch (err) {
-            console.error("Worker Execution Error:", err);
+            console.error("Worker Catch Execution Error:", err);
             return jsonResponse({ error: 'Internal Server Error', details: err.message }, 500);
         }
     }
