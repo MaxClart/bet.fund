@@ -1,82 +1,87 @@
-// app.js - 100% Server-Side Database Architecture (Zero LocalStorage)
+export default {
+    async fetch(request, env) {
+        const url = new URL(request.url);
 
-const BACKEND_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";
+        // API Endpoint: Registration
+        if (url.pathname === '/api/auth/register' && request.method === 'POST') {
+            const { username, password } = await request.json();
+            if (!username || !password) {
+                return Response.json({ error: 'Username and password required' }, { status: 400 });
+            }
 
-// 1. Initialize Authentication State Listener
-firebase.auth().onAuthStateChanged(async (user) => {
-    if (user) {
-        console.log("Authenticated via Firebase:", user.uid);
-        await fetchUserDataFromServer(user.uid);
-    } else {
-        console.log("No active session. User is logged out.");
-        resetUIForLoggedOutState();
-    }
-});
+            const existing = await env.DB.prepare('SELECT id FROM users WHERE username = ?').bind(username).first();
+            if (existing) {
+                return Response.json({ error: 'Username already in use' }, { status: 409 });
+            }
 
-// 2. Real Google Sign-In Trigger (Bound to your Login Button)
-function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-        .then((result) => {
-            console.log("Google Login Success:", result.user.email);
-        })
-        .catch((error) => {
-            console.error("Google Login Error:", error.code, error.message);
-            alert("Authentication failed: " + error.message);
-        });
-}
+            const userId = crypto.randomUUID();
+            await env.DB.prepare('INSERT INTO users (id, username, password) VALUES (?, ?, ?)').bind(userId, username, password).run();
 
-// 3. Fetch Profile Exclusively from Cloudflare R2 Database
-async function fetchUserDataFromServer(userId) {
-    try {
-        const response = await fetch(`${BACKEND_ENDPOINT}/profiles/${userId}.json`);
-        if (response.ok) {
-            const data = await response.json();
-            populateUIWithServerData(data);
-        } else {
-            console.log("No remote profile found. Initializing new record.");
-        }
-    } catch (error) {
-        console.error("Failed to fetch from server database:", error);
-    }
-}
+            const token = crypto.randomUUID();
+            await env.DB.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)').bind(token, userId).run();
 
-// 4. Save Profile Exclusively to Cloudflare R2 Database (Zero Local Storage)
-async function saveProfileToServer(userId, profileData) {
-    const saveButton = document.getElementById('save-profile-btn');
-    if (saveButton) saveButton.textContent = "Syncing to Database...";
-
-    try {
-        const response = await fetch(`${BACKEND_ENDPOINT}/profiles/${userId}.json`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...profileData,
-                lastUpdated: new Date().toISOString()
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Database sync failed with status ${response.status}`);
+            return new Response(JSON.stringify({ user: { id: userId, username } }), {
+                status: 201,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': `session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/`
+                }
+            });
         }
 
-        console.log("Successfully saved to server database.");
-        if (saveButton) saveButton.textContent = "Saved";
-        setTimeout(() => { if (saveButton) saveButton.textContent = "Save Changes"; }, 2000);
+        // API Endpoint: Login
+        if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+            const { username, password } = await request.json();
+            const user = await env.DB.prepare('SELECT id, username, password FROM users WHERE username = ?').bind(username).first();
 
-    } catch (error) {
-        console.error("Persistence error:", error);
-        alert("Failed to save changes to the database.");
-        if (saveButton) saveButton.textContent = "Sync Failed";
+            if (!user || user.password !== password) {
+                return Response.json({ error: 'Invalid credentials' }, { status: 401 });
+            }
+
+            const token = crypto.randomUUID();
+            await env.DB.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)').bind(token, user.id).run();
+
+            return new Response(JSON.stringify({ user: { id: user.id, username: user.username } }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': `session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/`
+                }
+            });
+        }
+
+        // API Endpoint: Session Verification
+        if (url.pathname === '/api/auth/me' && request.method === 'GET') {
+            const cookieHeader = request.headers.get('Cookie') || '';
+            const match = cookieHeader.match(/session=([^;]+)/);
+            const token = match ? match[1] : null;
+
+            if (!token) {
+                return Response.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+
+            const session = await env.DB.prepare(
+                'SELECT u.id, u.username FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ?'
+            ).bind(token).first();
+
+            if (!session) {
+                return Response.json({ error: 'Invalid or expired session' }, { status: 401 });
+            }
+
+            return Response.json({ user: session });
+        }
+
+        // API Endpoint: Logout
+        if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
+            return new Response(JSON.stringify({ success: true }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': 'session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'
+                }
+            });
+        }
+
+        return new Response('Not Found', { status: 404 });
     }
-}
-
-function populateUIWithServerData(data) {
-    // Map your server JSON data fields to your UI inputs here
-}
-
-function resetUIForLoggedOutState() {
-    // Clear display fields back to default empty state
-}
+};
