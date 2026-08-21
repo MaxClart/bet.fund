@@ -32,7 +32,9 @@ export default {
                 }
                 const token = authHeader.split(" ")[1];
                 let decoded: any;
-                try { decoded = JSON.parse(atob(token)); } catch {
+                try { 
+                    decoded = JSON.parse(atob(token)); 
+                } catch {
                     return new Response(JSON.stringify({ error: "Invalid token" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
 
@@ -134,7 +136,7 @@ export default {
 
                 const userId = decoded.userId;
 
-                // SEARCH USERS ROUTE
+                // FRIEND SEARCH ROUTE USING SQL LIKE
                 if (path === "/api/friends/search" && request.method === "GET") {
                     const searchQuery = url.searchParams.get("query") || "";
                     const { results } = await env.DB.prepare(

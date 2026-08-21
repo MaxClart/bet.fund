@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 
-interface FriendsAndSearchProps {
+interface FriendAndSearchProps {
     token: string;
     currentUserId: string;
 }
 
-export const FriendsAndSearch: React.FC<FriendsAndSearchProps> = ({ token, currentUserId }) => {
+export const FriendAndSearch: React.FC<FriendAndSearchProps> = ({ token, currentUserId }) => {
     // Stories states
     const [stories, setStories] = useState<any[]>([]);
     const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
@@ -171,6 +171,7 @@ export const FriendsAndSearch: React.FC<FriendsAndSearchProps> = ({ token, curre
             {/* Stories Tray Section */}
             <div style={styles.sectionHeader}>
                 <h3 style={styles.sectionTitle}>✦ Active Stories</h3>
+                {/* Custom Luxury Upload Button hiding native input */}
                 <button onClick={() => storyInputRef.current?.click()} style={styles.customActionBtn}>
                     + Add Story
                 </button>

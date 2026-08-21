@@ -20,7 +20,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ user, token, onClose, 
     const [avatarUrl, setAvatarUrl] = useState(user.avatar_url || "");
     const [bannerUrl, setBannerUrl] = useState(user.banner_url || "");
     
-    // Zoom & scale states for framing preview
+    // Zoom and scaling states for framing preview
     const [bannerScale, setBannerScale] = useState(1);
     const [avatarScale, setAvatarScale] = useState(1);
 
@@ -147,6 +147,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ user, token, onClose, 
                                 )}
                             </div>
                         </div>
+                        {/* Native input fully hidden */}
                         <input
                             type="file"
                             ref={bannerInputRef}
@@ -199,6 +200,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ user, token, onClose, 
                                 )}
                             </div>
                         </div>
+                        {/* Native input fully hidden */}
                         <input
                             type="file"
                             ref={avatarInputRef}
