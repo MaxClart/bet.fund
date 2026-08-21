@@ -24,6 +24,26 @@ export default {
                 return await handleAuth(request, env, corsHeaders);
             }
 
+            // ================= PROFILE UPDATE ROUTE =================
+            if (path === "/api/profile" && request.method === "PUT") {
+                const authHeader = request.headers.get("Authorization");
+                if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+                const token = authHeader.split(" ")[1];
+                let decoded: any;
+                try { decoded = JSON.parse(atob(token)); } catch {
+                    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const body = (await request.json()) as { bio?: string; status?: string; avatar_url?: string; banner_url?: string };
+                await env.DB.prepare(
+                    "UPDATE users SET bio = ?, status = ?, avatar_url = ?, banner_url = ? WHERE id = ?"
+                ).bind(body.bio || "", body.status || "", body.avatar_url || "", body.banner_url || "", decoded.userId).run();
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
             // ================= R2 UPLOAD ROUTE =================
             if (path === "/api/upload" && request.method === "POST") {
                 const formData = await request.formData();
@@ -45,8 +65,7 @@ export default {
                     httpMetadata: { contentType: file.type },
                 });
 
-                // Assuming public URL structure or custom domain mapping
-                const fileUrl = `/cdn-cgi/storage/public/${key}`; // Or use a custom public URL base if configured
+                const fileUrl = `/cdn-cgi/storage/public/${key}`;
 
                 return new Response(JSON.stringify({ url: fileUrl, key }), {
                     status: 200,
@@ -92,7 +111,7 @@ export default {
                 }
             }
 
-            // ================= FRIENDS ROUTES =================
+            // ================= FRIENDS & SEARCH ROUTES =================
             if (path.startsWith("/api/friends")) {
                 const authHeader = request.headers.get("Authorization");
                 if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -114,6 +133,22 @@ export default {
                 }
 
                 const userId = decoded.userId;
+
+                // SEARCH USERS ROUTE
+                if (path === "/api/friends/search" && request.method === "GET") {
+                    const searchQuery = url.searchParams.get("query") || "";
+                    const { results } = await env.DB.prepare(
+                        `SELECT id, username, avatar_url, bio, status 
+                         FROM users 
+                         WHERE id != ? AND username LIKE ? 
+                         LIMIT 20`
+                    ).bind(userId, `%${searchQuery}%`).all();
+
+                    return new Response(JSON.stringify({ users: results }), {
+                        status: 200,
+                        headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    });
+                }
 
                 if (path === "/api/friends" && request.method === "GET") {
                     const { results } = await env.DB.prepare(
@@ -144,8 +179,14 @@ export default {
                 }
 
                 if (path === "/api/friends/request" && request.method === "POST") {
-                    const body = (await request.json()) as { targetUsername: string };
-                    const targetUser = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(body.targetUsername).first<{ id: string }>();
+                    const body = (await request.json()) as { targetUsername?: string; targetUserId?: string };
+                    let targetUser: any = null;
+
+                    if (body.targetUserId) {
+                        targetUser = await env.DB.prepare("SELECT id FROM users WHERE id = ?").bind(body.targetUserId).first();
+                    } else if (body.targetUsername) {
+                        targetUser = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(body.targetUsername).first();
+                    }
 
                     if (!targetUser) {
                         return new Response(JSON.stringify({ error: "User not found" }), {
@@ -156,6 +197,17 @@ export default {
 
                     if (targetUser.id === userId) {
                         return new Response(JSON.stringify({ error: "Cannot add yourself" }), {
+                            status: 400,
+                            headers: { ...corsHeaders, "Content-Type": "application/json" },
+                        });
+                    }
+
+                    const existingReq = await env.DB.prepare(
+                        "SELECT id FROM friend_requests WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)"
+                    ).bind(userId, targetUser.id, targetUser.id, userId).first();
+
+                    if (existingReq) {
+                        return new Response(JSON.stringify({ error: "Friend request already exists or already friends" }), {
                             status: 400,
                             headers: { ...corsHeaders, "Content-Type": "application/json" },
                         });
@@ -177,7 +229,6 @@ export default {
                     
                     await env.DB.prepare("UPDATE friend_requests SET status = 'accepted' WHERE id = ?").bind(body.requestId).run();
                     
-                    // Establish bidirectional friendship
                     await env.DB.prepare("INSERT INTO friends (id, user_id, friend_id) VALUES (?, ?, ?)").bind(crypto.randomUUID(), userId, body.senderId).run();
                     await env.DB.prepare("INSERT INTO friends (id, user_id, friend_id) VALUES (?, ?, ?)").bind(crypto.randomUUID(), body.senderId, userId).run();
 
