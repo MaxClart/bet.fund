@@ -5,30 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bet.fund / Syndicate Profile Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Firebase Identity Provider Integration -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script>
-      var config = {
-        apiKey: "AIzaSyB8CUWrQ76ej4-WckpJwHLSbsAO6C5WrPg",
-        authDomain: "optixxx.firebaseapp.com",
-      };
-      try {
-        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-            firebase.initializeApp(config);
-        }
-      } catch (e) {
-        console.warn("Firebase script offline or blocked:", e);
-      }
-    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         
         .gold-gradient { background: linear-gradient(135deg, rgba(191, 149, 63, 0.95) 0%, rgba(252, 246, 186, 0.95) 25%, rgba(179, 135, 40, 0.95) 50%, rgba(251, 245, 183, 0.95) 75%, rgba(170, 119, 28, 0.95) 100%); }
-        .gold-text { background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-text { background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .gold-border { border-color: rgba(191, 149, 63, 0.4); }
         .gold-bg-glow { box-shadow: 0 0 20px rgba(191, 149, 63, 0.2); }
         .glass-luxury { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -44,69 +27,50 @@
 </head>
 <body class="bg-[#030303] text-neutral-100 font-sans min-h-screen pb-32 selection:bg-[#bf953f] selection:text-black">
 
-    <!-- STEP 1: MANDATORY LOGIN GATE -->
+    <!-- LOGIN & REGISTER GATE -->
     <div id="auth-gate" class="fixed inset-0 z-[100] bg-[#030303] flex items-center justify-center p-6 overflow-y-auto">
         <div class="max-w-md w-full bg-neutral-950 border gold-border rounded-3xl p-8 space-y-6 shadow-2xl gold-bg-glow my-auto relative">
             <div class="space-y-2 text-center">
                 <h1 class="text-3xl font-light tracking-[0.3em] uppercase gold-text">bet.fund</h1>
-                <p class="text-xs text-neutral-400">Authentication required to enter syndicate workspace.</p>
+                <p class="text-xs text-neutral-400">Syndicate Studio Authentication Gateway</p>
             </div>
             
             <div class="flex bg-neutral-900 p-1 rounded-xl text-xs font-semibold">
-                <button onclick="switchAuthTab('google')" id="auth-tab-google" class="flex-1 py-2 rounded-lg bg-neutral-800 text-white transition">Google</button>
-                <button onclick="switchAuthTab('email')" id="auth-tab-email" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Email</button>
-                <button onclick="switchAuthTab('demo')" id="auth-tab-demo" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Quick Test</button>
+                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 py-2 rounded-lg bg-neutral-800 text-white transition">Sign In</button>
+                <button onclick="switchAuthTab('register')" id="auth-tab-register" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Register</button>
             </div>
 
-            <div id="auth-view-google" class="space-y-4">
-                <p class="text-xs text-neutral-400 text-center">Sign in using Google identity provider.</p>
-                <button onclick="triggerGoogleAuth()" class="w-full py-3 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-3 shadow-lg">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.17 21.32 7.23 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.8 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
-                    <span>Sign in with Google</span>
+            <!-- LOGIN FORM -->
+            <div id="auth-view-login" class="space-y-3">
+                <div>
+                    <label class="block text-[11px] text-neutral-400 mb-1">Username</label>
+                    <input type="text" id="login-username" placeholder="your_handle" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-neutral-400 mb-1">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                </div>
+                <button onclick="handleLogin()" class="w-full py-3 mt-2 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition">
+                    Access Studio
                 </button>
             </div>
 
-            <div id="auth-view-email" class="space-y-3 hidden">
-                <input type="email" id="email-input" placeholder="name@domain.com" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
-                <input type="password" id="pass-input" placeholder="Password" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
-                <div class="flex gap-2 pt-1">
-                    <button onclick="handleEmailAuth(true)" class="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white rounded-xl transition border border-neutral-700">Sign In</button>
-                    <button onclick="handleEmailAuth(false)" class="flex-1 py-2.5 gold-gradient text-black text-xs font-bold rounded-xl transition hover:opacity-90">Register</button>
+            <!-- REGISTER FORM -->
+            <div id="auth-view-register" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-[11px] text-neutral-400 mb-1">Choose Username (Unique Handle)</label>
+                    <input type="text" id="reg-username" placeholder="your_handle" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 font-mono transition">
                 </div>
-            </div>
-
-            <div id="auth-view-demo" class="space-y-3 hidden text-center">
-                <p class="text-xs text-neutral-400">Bypass server configuration and test local studio flow instantly.</p>
-                <button onclick="handleAuthSuccess({ displayName: 'Verified User', email: 'user@bet.fund' })" class="w-full py-3 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg">Login as Test User</button>
+                <div>
+                    <label class="block text-[11px] text-neutral-400 mb-1">Create Password</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 transition">
+                </div>
+                <button onclick="handleRegister()" class="w-full py-3 mt-2 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition">
+                    Create Account & Enter
+                </button>
             </div>
 
             <p id="gate-error-msg" class="text-[11px] text-amber-400 text-center hidden bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20"></p>
-        </div>
-    </div>
-
-    <!-- STEP 2: MANDATORY UNIQUE USERNAME CLAIM GATE -->
-    <div id="username-gate" class="fixed inset-0 z-[95] bg-[#030303] flex items-center justify-center p-6 hidden">
-        <div class="max-w-md w-full bg-neutral-950 border gold-border rounded-3xl p-8 space-y-5 shadow-2xl gold-bg-glow my-auto">
-            <div class="space-y-1">
-                <div class="text-[10px] tracking-[0.25em] uppercase font-bold text-amber-400">Step 2 of 2</div>
-                <h2 class="text-xl font-light tracking-wide text-white">Claim Unique Handle</h2>
-                <p class="text-xs text-neutral-400">Usernames are unique across bet.fund. No two users can share the same handle.</p>
-            </div>
-
-            <div class="space-y-2">
-                <label class="block text-[11px] text-neutral-300 font-medium">Desired Username</label>
-                <div class="relative">
-                    <span class="absolute left-4 top-2.5 text-xs text-neutral-500 font-mono">@</span>
-                    <input type="text" id="username-claim-input" placeholder="your_handle" class="w-full bg-[#030303] border border-neutral-800 rounded-xl pl-8 pr-4 py-2.5 text-xs text-white outline-none focus:border-amber-500/50 font-mono transition">
-                </div>
-                <p class="text-[10px] text-neutral-500">Already taken: <span class="text-neutral-400">@ysk, @admin, @betfund, @satoshi</span></p>
-            </div>
-
-            <p id="username-error-msg" class="text-[11px] text-red-400 font-medium hidden"></p>
-
-            <button onclick="claimUsername()" class="w-full py-3 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition">
-                Confirm & Enter Studio
-            </button>
         </div>
     </div>
 
@@ -114,7 +78,7 @@
     <div id="main-app" class="max-w-xl mx-auto w-full border-x border-neutral-900/80 min-h-screen relative hidden flex-col shadow-2xl bg-[#070707]">
         
         <div class="bg-emerald-500/20 border-b border-emerald-500/40 text-emerald-300 text-[10px] font-mono py-1 px-4 text-center tracking-wider">
-            ✓ R2 STORAGE SYNC ACTIVE (Cloudflare R2 Endpoint Connected)
+            ✓ LOCAL STORAGE DATABASE ACTIVE (<span id="active-user-badge">user</span>)
         </div>
 
         <!-- VIEW: HOME -->
@@ -127,15 +91,20 @@
                     <div id="nav-badges-row" class="flex items-center gap-1.5"></div>
                 </div>
                 <h1 class="text-lg font-light tracking-[0.3em] uppercase gold-text">bet.fund</h1>
-                <button class="text-neutral-400 hover:text-white transition p-1" onclick="switchView('view-settings')">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
-                </button>
+                <div class="flex items-center gap-3">
+                    <button class="text-neutral-400 hover:text-white transition p-1 text-xs" onclick="logout()" title="Log out">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                    </button>
+                    <button class="text-neutral-400 hover:text-white transition p-1" onclick="switchView('view-settings')">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    </button>
+                </div>
             </header>
             <div class="p-6 space-y-6">
                 <div class="bg-gradient-to-br from-neutral-900/80 to-neutral-950 border border-neutral-800 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
                     <div class="text-[10px] tracking-[0.25em] uppercase font-bold text-amber-400 mb-2">Authenticated Enclave</div>
                     <h2 class="text-xl font-light tracking-wide text-white mb-1">Welcome back, <span id="home-display-name" class="gold-text">¥</span></h2>
-                    <p class="text-xs text-neutral-400 mb-6">Upload photos directly from your device, preview live adjustments, and save assets directly to Cloudflare R2 object data storage.</p>
+                    <p class="text-xs text-neutral-400 mb-6">Upload photos directly from your device, preview live adjustments, and store profile setups securely in local database storage.</p>
                     <div class="flex gap-3">
                         <button onclick="switchView('view-settings')" class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-semibold hover:bg-amber-500/20 transition">Open Studio Settings</button>
                     </div>
@@ -159,7 +128,7 @@
                             <span class="text-xs font-semibold gold-text">Zurich Node</span>
                             <span class="text-[9px] text-neutral-500">11:45 AM</span>
                         </div>
-                        <p class="text-xs text-neutral-300">Profile transform suite active with direct device file pickers & Cloudflare R2 bucket linkage.</p>
+                        <p class="text-xs text-neutral-300">Profile transform suite active with direct device file pickers & persistent storage linkage.</p>
                     </div>
                 </div>
             </div>
@@ -237,20 +206,22 @@
                             <label class="block text-[11px] text-neutral-400 mb-1.5">Biography</label>
                             <textarea id="input-bio" oninput="updateProfileData()" rows="2" class="w-full bg-[#030303] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none resize-none">Private banking & alternative investments. Zurich & Geneva.</textarea>
                         </div>
+                        <button onclick="saveProfileToStorage()" class="w-full py-3 mt-2 gold-gradient text-black font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition">
+                            Save Changes to Local Database
+                        </button>
                     </div>
 
                     <!-- BANNER FILE UPLOAD & LIVE PREVIEW + TRANSFORM -->
                     <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
                         <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Banner Upload & Adjustment</h3>
                         
-                        <!-- LIVE BANNER PREVIEW CONTAINER -->
                         <div class="w-full h-32 rounded-2xl bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center">
                             <img id="settings-banner-preview" src="" class="absolute pointer-events-none select-none max-w-none">
                             <span class="absolute bottom-2 right-3 text-[9px] font-mono bg-black/60 px-2 py-0.5 rounded text-neutral-400">Live Preview</span>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Photo from Phone / PC (Saved to Cloudflare R2)</label>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">Upload Photo from Phone / PC</label>
                             <input type="file" id="input-banner-file" accept="image/*" onchange="handleFileUpload(event, 'banner')" class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 bg-[#030303] border border-neutral-800 rounded-xl p-1 cursor-pointer">
                         </div>
                         <div class="grid grid-cols-3 gap-3">
@@ -273,12 +244,11 @@
                     <div class="bg-neutral-900/30 border border-neutral-900 rounded-3xl p-5 space-y-4 shadow-xl">
                         <h3 class="font-medium text-[10px] uppercase tracking-[0.2em] gold-text">Avatar Upload & Adjustment</h3>
                         
-                        <!-- LIVE AVATAR PREVIEW CONTAINER -->
                         <div class="flex items-center gap-4">
                             <div class="w-20 h-20 rounded-full bg-neutral-950 border border-neutral-800 relative overflow-hidden flex items-center justify-center shrink-0">
                                 <img id="settings-avatar-preview" src="" class="absolute pointer-events-none select-none max-w-none">
                             </div>
-                            <p class="text-[11px] text-neutral-400 leading-relaxed">Adjust your avatar framing using the parameters below. Assets sync securely with R2 object storage.</p>
+                            <p class="text-[11px] text-neutral-400 leading-relaxed">Adjust your avatar framing using the parameters below.</p>
                         </div>
 
                         <div>
@@ -333,9 +303,7 @@
     </div>
 
     <script>
-        const CLOUDFLARE_R2_ENDPOINT = "https://eea59698ac4fa33d1140377f9ca19961.r2.cloudflarestorage.com/bet";
-        const registeredUsernames = ['', 'admin', 'betfund', 'satoshi'];
-
+        let currentUsername = null;
         let profileState = {
             name: "¥", 
             handle: "", 
@@ -346,110 +314,129 @@
         };
 
         const availableBadges = [
-            { id: 'elite', name: 'bet.fund Elite Member', text: 'ELITE', icon: '✦' },
-            { id: 'boost', name: 'Syndicate Booster Lv. 4', text: 'BOOSTER', icon: '✦' }
+            { id: "elite", name: "bet.fund Elite Member", text: "ELITE", icon: "✦" },
+            { id: "boost", name: "Syndicate Booster Lv. 4", text: "BOOSTER", icon: "✦" }
         ];
-        let activeBadges = ['elite'];
+        let activeBadges = ["elite"];
 
         function switchAuthTab(tab) {
-            ['google', 'email', 'demo'].forEach(v => {
-                const viewEl = document.getElementById(`auth-view-${v}`);
-                const tabEl = document.getElementById(`auth-tab-${v}`);
+            ["login", "register"].forEach(function(v) {
+                var viewEl = document.getElementById("auth-view-" + v);
+                var tabEl = document.getElementById("auth-tab-" + v);
                 if (v === tab) {
-                    viewEl.classList.remove('hidden');
+                    viewEl.classList.remove("hidden");
                     tabEl.className = "flex-1 py-2 rounded-lg bg-neutral-800 text-white transition";
                 } else {
-                    viewEl.classList.add('hidden');
+                    viewEl.classList.add("hidden");
                     tabEl.className = "flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition";
                 }
             });
-            document.getElementById('gate-error-msg').classList.add('hidden');
+            document.getElementById("gate-error-msg").classList.add("hidden");
         }
 
-        function triggerGoogleAuth() {
-            const errEl = document.getElementById('gate-error-msg');
-            errEl.classList.add('hidden');
-
-            if (window.location.protocol === 'file:') {
-                handleAuthSuccess({ displayName: 'Google User (Local)', email: 'user@gmail.com' });
-                return;
-            }
-
-            if (typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: 'Google User', email: 'user@gmail.com' });
-                return;
-            }
-
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { 
-                    errEl.innerText = error.message; 
-                    errEl.classList.remove('hidden'); 
-                });
-        }
-
-        function handleEmailAuth(isSignIn) {
-            const errEl = document.getElementById('gate-error-msg');
-            errEl.classList.add('hidden');
-            const email = document.getElementById('email-input').value.trim();
-            const pass = document.getElementById('pass-input').value.trim();
-
-            if (!email || !pass) {
-                errEl.innerText = "Please enter email and password.";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            if (window.location.protocol === 'file:' || typeof firebase === 'undefined' || !firebase.auth) {
-                handleAuthSuccess({ displayName: email.split('@')[0], email: email });
-                return;
-            }
-
-            const promise = isSignIn ? 
-                firebase.auth().signInWithEmailAndPassword(email, pass) : 
-                firebase.auth().createUserWithEmailAndPassword(email, pass);
-
-            promise
-                .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => { errEl.innerText = error.message; errEl.classList.remove('hidden'); });
-        }
-
-        function handleAuthSuccess(user) {
-            document.getElementById('auth-gate').classList.add('hidden');
-            document.getElementById('username-gate').classList.remove('hidden');
-
-            if (user.displayName) {
-                document.getElementById('input-name').value = user.displayName;
-                profileState.name = user.displayName;
-            }
-        }
-
-        function claimUsername() {
-            const rawInput = document.getElementById('username-claim-input').value.trim();
-            const handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            const errEl = document.getElementById('username-error-msg');
-            errEl.classList.add('hidden');
+        function handleRegister() {
+            var rawInput = document.getElementById("reg-username").value.trim();
+            var pass = document.getElementById("reg-password").value.trim();
+            var handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, "");
+            var errEl = document.getElementById("gate-error-msg");
+            errEl.classList.add("hidden");
 
             if (!handle || handle.length < 3) {
-                errEl.innerText = "Username must be at least 3 characters long.";
-                errEl.classList.remove('hidden');
+                errEl.innerText = "Username must be at least 3 alphanumeric characters.";
+                errEl.classList.remove("hidden");
+                return;
+            }
+            if (!pass || pass.length < 4) {
+                errEl.innerText = "Password must be at least 4 characters long.";
+                errEl.classList.remove("hidden");
                 return;
             }
 
-            if (registeredUsernames.includes(handle)) {
-                errEl.innerText = `@${handle} is already claimed by another user. Choose a different handle.`;
-                errEl.classList.remove('hidden');
+            var existingUsers = JSON.parse(localStorage.getItem("betfund_users") || "{}");
+            if (existingUsers[handle]) {
+                errEl.innerText = "@" + handle + " is already registered. Please sign in instead.";
+                errEl.classList.remove("hidden");
                 return;
             }
 
-            registeredUsernames.push(handle);
-            profileState.handle = handle;
+            // Create account
+            existingUsers[handle] = {
+                password: pass,
+                profile: {
+                    name: rawInput,
+                    handle: handle,
+                    status: "• XV ∞ XIX",
+                    bio: "Private banking & alternative investments. Zurich & Geneva.",
+                    avatar: { url: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + handle + "&backgroundColor=111", zoom: 100, x: 0, y: 0 },
+                    banner: { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", zoom: 100, x: 0, y: 0 },
+                    activeBadges: ["elite"]
+                }
+            };
 
-            document.getElementById('username-gate').classList.add('hidden');
-            const mainApp = document.getElementById('main-app');
-            mainApp.classList.remove('hidden');
-            mainApp.classList.add('flex');
+            localStorage.setItem("betfund_users", JSON.stringify(existingUsers));
+            loginUser(handle);
+        }
+
+        function handleLogin() {
+            var rawInput = document.getElementById("login-username").value.trim();
+            var pass = document.getElementById("login-password").value.trim();
+            var handle = rawInput.toLowerCase().replace(/[^a-z0-9_]/g, "");
+            var errEl = document.getElementById("gate-error-msg");
+            errEl.classList.add("hidden");
+
+            var existingUsers = JSON.parse(localStorage.getItem("betfund_users") || "{}");
+            
+            if (!existingUsers[handle]) {
+                errEl.innerText = "Account @" + handle + " does not exist. Please register first.";
+                errEl.classList.remove("hidden");
+                return;
+            }
+
+            if (existingUsers[handle].password !== pass) {
+                errEl.innerText = "Incorrect password.";
+                errEl.classList.remove("hidden");
+                return;
+            }
+
+            loginUser(handle);
+        }
+
+        function loginUser(handle) {
+            currentUsername = handle;
+            var existingUsers = JSON.parse(localStorage.getItem("betfund_users") || "{}");
+            profileState = existingUsers[handle].profile;
+            if (profileState.activeBadges) {
+                activeBadges = profileState.activeBadges;
+            }
+
+            document.getElementById("auth-gate").classList.add("hidden");
+            initMainAppSession();
+        }
+
+        function logout() {
+            currentUsername = null;
+            document.getElementById("main-app").classList.add("hidden");
+            document.getElementById("main-app").classList.remove("flex");
+            document.getElementById("auth-gate").classList.remove("hidden");
+            document.getElementById("login-username").value = "";
+            document.getElementById("login-password").value = "";
+        }
+
+        function initMainAppSession() {
+            var mainApp = document.getElementById("main-app");
+            mainApp.classList.remove("hidden");
+            mainApp.classList.add("flex");
+
+            document.getElementById("active-user-badge").innerText = "@" + currentUsername;
+            document.getElementById("input-name").value = profileState.name;
+            document.getElementById("input-status").value = profileState.status;
+            document.getElementById("input-bio").value = profileState.bio;
+            if (profileState.banner && profileState.banner.zoom) document.getElementById("banner-zoom").value = profileState.banner.zoom;
+            if (profileState.banner && profileState.banner.x) document.getElementById("banner-x").value = profileState.banner.x;
+            if (profileState.banner && profileState.banner.y) document.getElementById("banner-y").value = profileState.banner.y;
+            if (profileState.avatar && profileState.avatar.zoom) document.getElementById("avatar-zoom").value = profileState.avatar.zoom;
+            if (profileState.avatar && profileState.avatar.x) document.getElementById("avatar-x").value = profileState.avatar.x;
+            if (profileState.avatar && profileState.avatar.y) document.getElementById("avatar-y").value = profileState.avatar.y;
 
             updateProfileData();
             updateBannerTransform();
@@ -457,107 +444,117 @@
             renderBadgesManager();
         }
 
+        function saveProfileToStorage() {
+            if (!currentUsername) return;
+            updateProfileData();
+            profileState.activeBadges = activeBadges;
+
+            var existingUsers = JSON.parse(localStorage.getItem("betfund_users") || "{}");
+            if (existingUsers[currentUsername]) {
+                existingUsers[currentUsername].profile = profileState;
+                localStorage.setItem("betfund_users", JSON.stringify(existingUsers));
+                console.log("Profile successfully saved to browser local database!");
+            }
+        }
+
         function handleFileUpload(event, target) {
-            const file = event.target.files[0];
+            var file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) {
-                const dataUrl = e.target.result;
+                var dataUrl = e.target.result;
                 
-                // Simulate Data Center / Cloudflare R2 persistence transmission
-                console.log(`Syncing ${target} asset to Cloudflare R2 Bucket: ${CLOUDFLARE_R2_ENDPOINT}/${profileState.handle || 'default'}_${target}`);
-
-                if (target === 'banner') {
+                if (target === "banner") {
                     profileState.banner.url = dataUrl;
                     updateBannerTransform();
-                } else if (target === 'avatar') {
+                } else if (target === "avatar") {
                     profileState.avatar.url = dataUrl;
                     updateAvatarTransform();
                 }
+
+                saveProfileToStorage();
             };
             reader.readAsDataURL(file);
         }
 
         function switchSettingsTab(tabName) {
-            ['profile', 'nitro'].forEach(t => {
-                const el = document.getElementById(`settings-content-${t}`);
-                if (el) el.classList.add('hidden');
-                const btn = document.getElementById(`void-tab-${t}`);
-                if (btn) btn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === 'nitro' ? " flex items-center gap-1.5" : "");
+            ["profile", "nitro"].forEach(function(t) {
+                var el = document.getElementById("settings-content-" + t);
+                if (el) el.classList.add("hidden");
+                var btn = document.getElementById("void-tab-" + t);
+                if (btn) btn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white transition" + (t === "nitro" ? " flex items-center gap-1.5" : "");
             });
-            const target = document.getElementById(`settings-content-${tabName}`);
-            if (target) target.classList.remove('hidden');
-            const activeBtn = document.getElementById(`void-tab-${tabName}`);
-            if (activeBtn) activeBtn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === 'nitro' ? " flex items-center gap-1.5" : "");
+            var target = document.getElementById("settings-content-" + tabName);
+            if (target) target.classList.remove("hidden");
+            var activeBtn = document.getElementById("void-tab-" + tabName);
+            if (activeBtn) activeBtn.className = "py-3 px-4 text-xs font-semibold border-b-2 border-amber-500 text-white transition" + (tabName === "nitro" ? " flex items-center gap-1.5" : "");
         }
 
         function updateProfileData() {
-            profileState.name = document.getElementById('input-name').value;
-            profileState.status = document.getElementById('input-status').value;
-            profileState.bio = document.getElementById('input-bio').value;
+            profileState.name = document.getElementById("input-name").value;
+            profileState.status = document.getElementById("input-status").value;
+            profileState.bio = document.getElementById("input-bio").value;
 
-            document.getElementById('profile-display-name').innerText = profileState.name;
-            document.getElementById('home-display-name').innerText = profileState.name;
-            document.getElementById('profile-handle-display').innerText = "@" + profileState.handle;
-            document.getElementById('profile-url-display').innerText = "bet.fund/u/" + profileState.handle;
-            document.getElementById('profile-custom-status').innerText = profileState.status;
-            document.getElementById('profile-bio-display').innerText = profileState.bio;
+            document.getElementById("profile-display-name").innerText = profileState.name;
+            document.getElementById("home-display-name").innerText = profileState.name;
+            document.getElementById("profile-handle-display").innerText = "@" + profileState.handle;
+            document.getElementById("profile-url-display").innerText = "bet.fund/u/" + profileState.handle;
+            document.getElementById("profile-custom-status").innerText = profileState.status;
+            document.getElementById("profile-bio-display").innerText = profileState.bio;
         }
 
         function updateBannerTransform() {
-            profileState.banner.zoom = document.getElementById('banner-zoom').value;
-            profileState.banner.x = document.getElementById('banner-x').value;
-            profileState.banner.y = document.getElementById('banner-y').value;
+            profileState.banner.zoom = document.getElementById("banner-zoom").value;
+            profileState.banner.x = document.getElementById("banner-x").value;
+            profileState.banner.y = document.getElementById("banner-y").value;
 
-            // Update both the profile view banner and settings preview banner live
-            ['profile-banner-img', 'settings-banner-preview'].forEach(id => {
-                const img = document.getElementById(id);
+            ["profile-banner-img", "settings-banner-preview"].forEach(function(id) {
+                var img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.banner.url;
-                    img.style.width = profileState.banner.zoom + '%';
-                    img.style.transform = `translate(${profileState.banner.x}px, ${profileState.banner.y}px)`;
+                    img.style.width = profileState.banner.zoom + "%";
+                    img.style.transform = "translate(" + profileState.banner.x + "px, " + profileState.banner.y + "px)";
                 }
             });
         }
 
         function updateAvatarTransform() {
-            profileState.avatar.zoom = document.getElementById('avatar-zoom').value;
-            profileState.avatar.x = document.getElementById('avatar-x').value;
-            profileState.avatar.y = document.getElementById('avatar-y').value;
+            profileState.avatar.zoom = document.getElementById("avatar-zoom").value;
+            profileState.avatar.x = document.getElementById("avatar-x").value;
+            profileState.avatar.y = document.getElementById("avatar-y").value;
 
-            // Update profile view avatar, top navbar avatar, and settings preview avatar live
-            ['profile-avatar-img', 'nav-avatar-img', 'settings-avatar-preview'].forEach(id => {
-                const img = document.getElementById(id);
+            ["profile-avatar-img", "nav-avatar-img", "settings-avatar-preview"].forEach(function(id) {
+                var img = document.getElementById(id);
                 if (img) {
                     img.src = profileState.avatar.url;
-                    img.style.width = profileState.avatar.zoom + '%';
-                    img.style.transform = `translate(${profileState.avatar.x}px, ${profileState.avatar.y}px)`;
+                    img.style.width = profileState.avatar.zoom + "%";
+                    img.style.transform = "translate(" + profileState.avatar.x + "px, " + profileState.avatar.y + "px)";
                 }
             });
         }
 
         function renderBadgesManager() {
-            const listEl = document.getElementById('badge-toggle-list');
+            var listEl = document.getElementById("badge-toggle-list");
             if (!listEl) return;
-            listEl.innerHTML = '';
+            listEl.innerHTML = "";
 
-            availableBadges.forEach(b => {
-                const isActive = activeBadges.includes(b.id);
-                const row = document.createElement('div');
+            availableBadges.forEach(function(b) {
+                var isActive = activeBadges.includes(b.id);
+                var row = document.createElement("div");
                 row.className = "flex items-center justify-between p-3 bg-neutral-950/60 border border-neutral-800/80 rounded-2xl";
-                row.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-7 h-7 rounded-xl gold-gradient flex items-center justify-center text-[10px] text-black font-bold">${b.icon}</div>
-                        <div>
-                            <div class="text-xs font-semibold text-white">${b.name}</div>
-                            <div class="text-[10px] text-neutral-400">Prestige badge element</div>
-                        </div>
-                    </div>
-                    <button onclick="toggleBadge('${b.id}')" class="px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition ${isActive ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
-                        ${isActive ? 'Active' : 'Equip'}
-                    </button>
-                `;
+                row.innerHTML = '\
+                    <div class="flex items-center gap-3">\
+                        <div class="w-7 h-7 rounded-xl gold-gradient flex items-center justify-center text-[10px] text-black font-bold">' + b.icon + '</div>\
+                        <div>\
+                            <div class="text-xs font-semibold text-white">' + b.name + '</div>\
+                            <div class="text-[10px] text-neutral-400">Prestige badge element</div>\
+                        </div>\
+                    </div>\
+                    <button onclick="toggleBadge(\'' + b.id + '\')" class="px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition ' + (isActive ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700') + '">\
+                        ' + (isActive ? 'Active' : 'Equip') + '\
+                    </button>\
+                ';
                 listEl.appendChild(row);
             });
             renderProfileBadgesHeader();
@@ -565,25 +562,26 @@
 
         function toggleBadge(id) {
             if (activeBadges.includes(id)) {
-                activeBadges = activeBadges.filter(b => b !== id);
+                activeBadges = activeBadges.filter(function(b) { return b !== id; });
             } else {
                 activeBadges.push(id);
             }
             renderBadgesManager();
+            saveProfileToStorage();
         }
 
         function renderProfileBadgesHeader() {
-            ['nav-badges-row', 'profile-badges-showcase'].forEach(containerId => {
-                const container = document.getElementById(containerId);
+            ["nav-badges-row", "profile-badges-showcase"].forEach(function(containerId) {
+                var container = document.getElementById(containerId);
                 if (!container) return;
-                container.innerHTML = '';
+                container.innerHTML = "";
                 
-                activeBadges.forEach(id => {
-                    const badge = availableBadges.find(b => b.id === id);
+                activeBadges.forEach(function(id) {
+                    var badge = availableBadges.find(function(b) { return b.id === id; });
                     if (!badge) return;
-                    const pill = document.createElement('div');
+                    var pill = document.createElement("div");
                     pill.className = "bg-neutral-900/90 border gold-border text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full gold-text elite-badge-glow flex items-center gap-1 shadow-lg";
-                    pill.innerHTML = `<span>${badge.icon}</span><span>${badge.text}</span>`;
+                    pill.innerHTML = "<span>" + badge.icon + "</span><span>" + badge.text + "</span>";
                     container.appendChild(pill);
                 });
             });
@@ -591,36 +589,36 @@
 
         function handleSendMessage(e) {
             e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
+            var input = document.getElementById("chat-input");
+            var text = input.value.trim();
             if (!text) return;
 
-            const container = document.getElementById('chat-messages');
-            const msgDiv = document.createElement('div');
+            var container = document.getElementById("chat-messages");
+            var msgDiv = document.createElement("div");
             msgDiv.className = "flex items-start gap-3 justify-end";
-            msgDiv.innerHTML = `
-                <div class="bg-neutral-900 border gold-border rounded-2xl p-3 max-w-[80%]">
-                    <div class="flex items-center gap-2 justify-end mb-1">
-                        <span class="text-[9px] text-neutral-500">Just now</span>
-                        <span class="text-xs font-semibold gold-text">${profileState.name}</span>
-                    </div>
-                    <p class="text-xs text-neutral-200 text-right">${text}</p>
-                </div>
-            `;
+            msgDiv.innerHTML = '\
+                <div class="bg-neutral-900 border gold-border rounded-2xl p-3 max-w-[80%]">\
+                    <div class="flex items-center gap-2 justify-end mb-1">\
+                        <span class="text-[9px] text-neutral-500">Just now</span>\
+                        <span class="text-xs font-semibold gold-text">' + profileState.name + '</span>\
+                    </div>\
+                    <p class="text-xs text-neutral-200 text-right">' + text + '</p>\
+                </div>\
+            ';
             container.appendChild(msgDiv);
-            input.value = '';
+            input.value = "";
             container.scrollTop = container.scrollHeight;
         }
 
         function switchView(targetViewId) {
-            document.querySelectorAll('.app-view').forEach(v => { v.classList.remove('block'); v.classList.add('hidden'); });
-            const target = document.getElementById(targetViewId);
-            if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
+            document.querySelectorAll(".app-view").forEach(function(v) { v.classList.remove("block"); v.classList.add("hidden"); });
+            var target = document.getElementById(targetViewId);
+            if (target) { target.classList.remove("hidden"); target.classList.add("block"); }
             
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition");
-            if (targetViewId === 'view-home') document.getElementById('nav-home').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-chat') document.getElementById('nav-chat').className = "nav-btn text-white p-2 rounded-full transition";
-            if (targetViewId === 'view-profile') document.getElementById('nav-profile').className = "nav-btn text-white p-2 rounded-full transition";
+            document.querySelectorAll(".nav-btn").forEach(function(btn) { btn.className = "nav-btn text-neutral-400 hover:text-white p-2 rounded-full transition"; });
+            if (targetViewId === "view-home") document.getElementById("nav-home").className = "nav-btn text-white p-2 rounded-full transition";
+            if (targetViewId === "view-chat") document.getElementById("nav-chat").className = "nav-btn text-white p-2 rounded-full transition";
+            if (targetViewId === "view-profile") document.getElementById("nav-profile").className = "nav-btn text-white p-2 rounded-full transition";
             
             window.scrollTo(0,0);
         }

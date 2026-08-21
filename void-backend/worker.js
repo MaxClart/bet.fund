@@ -1,46 +1,66 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    };
 
+    // Handle CORS preflight requests
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
     }
 
-    if (url.pathname === "/api/save" && request.method === "POST") {
-      try {
-        const data = await request.json();
-        await env.DB.prepare(
-          `INSERT INTO profiles (handle, name, status, bio, avatar, banner, data) 
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-           ON CONFLICT(handle) DO UPDATE SET 
-           name=?2, status=?3, bio=?4, avatar=?5, banner=?6, data=?7`
-        ).bind(
-          data.handle, data.name, data.status, data.bio, 
-          data.avatar.url, data.banner.url, JSON.stringify(data)
+    const corsHeaders = { "Access-Control-Allow-Origin": "*" };
+
+    try {
+      // --- REGISTER / LOGIN ROUTE ---
+      if (url.pathname === "/api/auth" && request.method === "POST") {
+        const { action, username, password, profile } = await request.json();
+        const handle = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
+
+        if (action === "register") {
+          const existing = await env.DB.prepare("SELECT * FROM users WHERE handle = ?").bind(handle).first();
+          if (existing) {
+            return new Response(JSON.stringify({ error: "User already exists" }), { status: 400, headers: corsHeaders });
+          }
+          await env.DB.prepare("INSERT INTO users (handle, password, profile) VALUES (?, ?, ?)").bind(
+            handle, password, JSON.stringify(profile || {})
+          ).run();
+          return new Response(JSON.stringify({ success: true, handle, profile }), { headers: corsHeaders });
+        } 
+
+        if (action === "login") {
+          const user = await env.DB.prepare("SELECT * FROM users WHERE handle = ?").bind(handle).first();
+          if (!user || user.password !== password) {
+            return new Response(JSON.stringify({ error: "Invalid username or password" }), { status: 401, headers: corsHeaders });
+          }
+          return new Response(JSON.stringify({ success: true, handle, profile: JSON.parse(user.profile) }), { headers: corsHeaders });
+        }
+      }
+
+      // --- SAVE PROFILE ROUTE ---
+      if (url.pathname === "/api/profile" && request.method === "POST") {
+        const { handle, profile } = await request.json();
+        await env.DB.prepare("UPDATE users SET profile = ? WHERE handle = ?").bind(
+          JSON.stringify(profile), handle
         ).run();
-
-        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
-      }
-    }
-
-    if (url.pathname === "/api/profile" && request.method === "GET") {
-      const handle = url.searchParams.get("handle");
-      const { results } = await env.DB.prepare("SELECT data FROM profiles WHERE handle = ?").bind(handle).all();
-      
-      if (results.length === 0) {
-        return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
-      return new Response(results[0].data, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+      // --- UPLOAD IMAGE TO R2 ROUTE ---
+      if (url.pathname.startsWith("/api/upload/") && request.method === "PUT") {
+        const key = url.pathname.replace("/api/upload/", "");
+        await env.R2_BUCKET.put(key, request.body);
+        const publicUrl = `https://pub-YOUR_R2_PUBLIC_DOMAIN.r2.dev/${key}`; // Replace with your R2 public bucket URL
+        return new Response(JSON.stringify({ success: true, url: publicUrl }), { headers: corsHeaders });
+      }
 
-    return new Response("Endpoint not found", { status: 404, headers: corsHeaders });
+      return new Response("Not found", { status: 404, headers: corsHeaders });
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+    }
   }
 };
