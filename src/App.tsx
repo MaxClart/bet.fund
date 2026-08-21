@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ProfileEdit } from "./components/ProfileEdit";
-import { FriendAndSearch } from "./components/FriendAndSearch";
+import { FriendsAndSearch } from "./components/FriendsAndSearch";
 
 export default function App() {
     const [user, setUser] = useState<any>(null);
@@ -41,10 +41,8 @@ export default function App() {
                 </button>
             </div>
 
-            {/* Friends, Search & Stories Component */}
-            <FriendAndSearch token={token} currentUserId={user.id} />
+            <FriendsAndSearch token={token} currentUserId={user.id} />
 
-            {/* Profile Edit Modal */}
             {isEditingProfile && (
                 <ProfileEdit 
                     user={user} 
