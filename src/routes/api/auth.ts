@@ -6,16 +6,12 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Handle CORS preflight
-    if (request.method === "OPTIONS") {
-        return new Response(null, {
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization"
-            }
-        });
-    }
+    const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Content-Type": "application/json",
+    };
 
     try {
         // REGISTER ENDPOINT
@@ -27,34 +23,34 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
             if (!username || !password) {
                 return new Response(JSON.stringify({ error: "Username and password are required." }), {
                     status: 400,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
 
-            // Check if user already exists
+            // Check if username already exists
             const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
             if (existing) {
                 return new Response(JSON.stringify({ error: "Username is already taken." }), {
                     status: 400,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
 
             const userId = crypto.randomUUID();
 
-            // Insert using the correct 'password' column (no password_hash anywhere)
+            // Insert using exact D1 schema columns: id, username, password, bio, status, avatar_url
             await env.DB.prepare(
-                "INSERT INTO users (id, username, password, bio, status, avatar_url, banner_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            ).bind(userId, username, password, "", "", "", "").run();
+                "INSERT INTO users (id, username, password, bio, status, avatar_url) VALUES (?, ?, ?, ?, ?, ?)"
+            ).bind(userId, username, password, "", "", "").run();
 
             const token = btoa(JSON.stringify({ userId, username, exp: Date.now() + 86400000 * 7 }));
 
             return new Response(JSON.stringify({
                 token,
-                user: { id: userId, username, bio: "", status: "", avatar_url: "", banner_url: "" }
+                user: { id: userId, username, bio: "", status: "", avatar_url: "" }
             }), {
                 status: 200,
-                headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                headers: corsHeaders,
             });
         }
 
@@ -67,13 +63,13 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
             if (!username || !password) {
                 return new Response(JSON.stringify({ error: "Username and password are required." }), {
                     status: 400,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
 
-            // Query using the correct 'password' column exclusively
+            // Query using the correct 'password' column (completely purged of password_hash)
             const user = await env.DB.prepare(
-                "SELECT id, username, password, bio, status, avatar_url, banner_url FROM users WHERE username = ?"
+                "SELECT id, username, password, bio, status, avatar_url FROM users WHERE username = ?"
             ).bind(username).first<{
                 id: string;
                 username: string;
@@ -81,13 +77,12 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
                 bio: string;
                 status: string;
                 avatar_url: string;
-                banner_url: string;
             }>();
 
             if (!user || user.password !== password) {
                 return new Response(JSON.stringify({ error: "Invalid username or password." }), {
                     status: 401,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
 
@@ -100,12 +95,11 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
                     username: user.username,
                     bio: user.bio,
                     status: user.status,
-                    avatar_url: user.avatar_url,
-                    banner_url: user.banner_url
+                    avatar_url: user.avatar_url
                 }
             }), {
                 status: 200,
-                headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                headers: corsHeaders,
             });
         }
 
@@ -115,7 +109,7 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
                 return new Response(JSON.stringify({ error: "Unauthorized" }), {
                     status: 401,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
 
@@ -125,42 +119,42 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
                 if (decoded.exp < Date.now()) {
                     return new Response(JSON.stringify({ error: "Token expired" }), {
                         status: 401,
-                        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                        headers: corsHeaders,
                     });
                 }
 
                 const user = await env.DB.prepare(
-                    "SELECT id, username, bio, status, avatar_url, banner_url FROM users WHERE id = ?"
+                    "SELECT id, username, bio, status, avatar_url FROM users WHERE id = ?"
                 ).bind(decoded.userId).first();
 
                 if (!user) {
                     return new Response(JSON.stringify({ error: "User not found" }), {
                         status: 404,
-                        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                        headers: corsHeaders,
                     });
                 }
 
                 return new Response(JSON.stringify({ user }), {
                     status: 200,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             } catch {
                 return new Response(JSON.stringify({ error: "Invalid token format" }), {
                     status: 400,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+                    headers: corsHeaders,
                 });
             }
         }
 
-        return new Response(JSON.stringify({ error: "Not Found" }), {
+        return new Response(JSON.stringify({ error: "Authentication Route Not Found" }), {
             status: 404,
-            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+            headers: corsHeaders,
         });
 
     } catch (err: any) {
         return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), {
             status: 500,
-            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+            headers: corsHeaders,
         });
     }
 }

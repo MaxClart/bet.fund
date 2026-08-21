@@ -115,6 +115,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         justifyContent: "center",
         alignItems: "center",
         zIndex: 1000,
+        pointerEvents: "auto",
     },
     modal: {
         background: "linear-gradient(135deg, #121212 0%, #1a1a1a 100%)",
@@ -126,6 +127,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.05)",
         color: "#f5f5f5",
         fontFamily: "system-ui, -apple-system, sans-serif",
+        pointerEvents: "auto",
     },
     header: {
         display: "flex",
@@ -137,7 +139,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         margin: 0,
         fontSize: "24px",
         fontWeight: 600,
-        color: "#d4af37", // Gold accent
+        color: "#d4af37", // Gold luxury accent
         letterSpacing: "0.5px",
     },
     closeBtn: {
