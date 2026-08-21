@@ -42,7 +42,7 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
 
             const userId = crypto.randomUUID();
 
-            // Insert using the correct 'password' column matching D1 database schema
+            // Insert using the correct 'password' column (no password_hash anywhere)
             await env.DB.prepare(
                 "INSERT INTO users (id, username, password, bio, status, avatar_url, banner_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
             ).bind(userId, username, password, "", "", "", "").run();
@@ -71,7 +71,7 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
                 });
             }
 
-            // Query user and the 'password' column directly
+            // Query using the correct 'password' column exclusively
             const user = await env.DB.prepare(
                 "SELECT id, username, password, bio, status, avatar_url, banner_url FROM users WHERE username = ?"
             ).bind(username).first<{
