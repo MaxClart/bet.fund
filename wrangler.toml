@@ -1,4 +1,9 @@
 name = "bet-fund"
+compatibility_date = "2026-08-20"
+main = "src/index.ts"
+
+[assets]
+directory = "./dist"
 
 [[d1_databases]]
 binding = "DB"
