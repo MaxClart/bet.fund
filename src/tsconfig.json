@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "skipLibCheck": true,
     "jsx": "react-jsx",
-    "types": [
-      "@cloudflare/workers-types"
-    ]
-  }
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*"]
 }
