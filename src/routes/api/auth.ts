@@ -2,15 +2,6 @@ export interface Env {
     DB: D1Database;
 }
 
-// Helper to hash passwords securely using Web Crypto API (native in Cloudflare Workers)
-async function hashPassword(password: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
 export async function handleAuth(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -50,12 +41,11 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
             }
 
             const userId = crypto.randomUUID();
-            const passwordHash = await hashPassword(password);
 
-            // Insert into D1 database matching schema columns precisely
+            // Insert using the correct 'password' column matching D1 database schema
             await env.DB.prepare(
-                "INSERT INTO users (id, username, password_hash, bio, status, avatar_url, banner_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            ).bind(userId, username, passwordHash, "", "", "", "").run();
+                "INSERT INTO users (id, username, password, bio, status, avatar_url, banner_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            ).bind(userId, username, password, "", "", "", "").run();
 
             const token = btoa(JSON.stringify({ userId, username, exp: Date.now() + 86400000 * 7 }));
 
@@ -81,28 +71,20 @@ export async function handleAuth(request: Request, env: Env): Promise<Response> 
                 });
             }
 
-            // Query user and password_hash
+            // Query user and the 'password' column directly
             const user = await env.DB.prepare(
-                "SELECT id, username, password_hash, bio, status, avatar_url, banner_url FROM users WHERE username = ?"
+                "SELECT id, username, password, bio, status, avatar_url, banner_url FROM users WHERE username = ?"
             ).bind(username).first<{
                 id: string;
                 username: string;
-                password_hash: string;
+                password: string;
                 bio: string;
                 status: string;
                 avatar_url: string;
                 banner_url: string;
             }>();
 
-            if (!user) {
-                return new Response(JSON.stringify({ error: "Invalid username or password." }), {
-                    status: 401,
-                    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
-                });
-            }
-
-            const hashedInput = await hashPassword(password);
-            if (hashedInput !== user.password_hash) {
+            if (!user || user.password !== password) {
                 return new Response(JSON.stringify({ error: "Invalid username or password." }), {
                     status: 401,
                     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
