@@ -162,6 +162,9 @@ export default {
             return new Response(object.body, { headers });
         }
 
-        return new Response('Not Found', { status: 404 });
+        // 8. SERVE STATIC FRONTEND ASSETS FOR NON-API ROUTES (Fallback)
+        return env.ASSETS 
+            ? await env.ASSETS.fetch(request) 
+            : new Response('Not Found', { status: 404 });
     }
 };
