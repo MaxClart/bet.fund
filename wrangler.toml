@@ -1,0 +1,16 @@
+name = "betbuild"
+compatibility_date = "2026-08-20"
+main = "src/index.ts"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bet"
+database_id = "b63b976a-813a-4f22-8d55-8c867f5f763e"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "bet-fund-media"

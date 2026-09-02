@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap');
+
+:root {
+    --bf-accent: var(--bf-accent);
+    --bf-accent-dark: var(--bf-accent-dark);
+    --bf-accent-light: var(--bf-accent-light);
+    --bf-accent-rgb: 212, 175, 55;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #060606;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+#app {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bf-accent);
+}
+
+.bf-serif {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* ---- Reusable gold button with lift + glow on hover ---- */
+.bf-gold-btn {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.bf-gold-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(var(--bf-accent-rgb), 0.35);
+    filter: brightness(1.08);
+}
+.bf-gold-btn:active {
+    transform: translateY(0);
+}
+
+.bf-outline-btn {
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.bf-outline-btn:hover {
+    background: rgba(var(--bf-accent-rgb), 0.1) !important;
+    transform: translateY(-1px);
+}
+
+/* ---- Story ring: Instagram-style conic gradient ---- */
+.bf-story-ring {
+    background: conic-gradient(from 180deg, var(--bf-accent-light), var(--bf-accent), #7a5c1e, var(--bf-accent), var(--bf-accent-light));
+}
+
+/* ---- Layout: dashboard header wraps and shrinks on small screens ---- */
+.bf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ---- Sidebar (desktop: fixed left rail, mobile: bottom tab bar) ---- */
+.bf-sidebar {
+    width: 84px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #0d0c08 0%, #0a0a0a 100%);
+    border-right: 1px solid rgba(var(--bf-accent-rgb), 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    gap: 8px;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.bf-app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.bf-main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 28px;
+}
+
+.bf-sidebar-item {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #888;
+    font-size: 20px;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.18s ease;
+}
+.bf-sidebar-item:hover {
+    background: rgba(var(--bf-accent-rgb), 0.08);
+    color: var(--bf-accent);
+    border-color: rgba(var(--bf-accent-rgb), 0.2);
+}
+.bf-sidebar-item.active {
+    background: linear-gradient(135deg, rgba(var(--bf-accent-rgb),0.18), rgba(var(--bf-accent-rgb),0.05));
+    color: var(--bf-accent-light);
+    border-color: rgba(var(--bf-accent-rgb), 0.4);
+    box-shadow: 0 0 16px rgba(var(--bf-accent-rgb), 0.15);
+}
+
+/* ---- Card polish: subtle glow + top accent ---- */
+.bf-glow-card {
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(var(--bf-accent-rgb),0.06) inset;
+}
+
+/* ---- List rows (friend cards, requests): lift + gold border on hover ---- */
+.bf-list-card {
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.bf-list-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(var(--bf-accent-rgb), 0.35) !important;
+    background: rgba(var(--bf-accent-rgb), 0.04) !important;
+}
+
+/* ---- Inputs: gold glow on focus instead of default blue outline ---- */
+.bf-input {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.bf-input:focus {
+    outline: none;
+    border-color: rgba(var(--bf-accent-rgb), 0.6) !important;
+    box-shadow: 0 0 0 3px rgba(var(--bf-accent-rgb), 0.12);
+}
+
+/* ---- Modals: full-height sheet on phones instead of a floating card ---- */
+@media (max-width: 640px) {
+    .bf-app-shell {
+        flex-direction: column;
+    }
+    .bf-sidebar {
+        width: 100%;
+        min-height: auto;
+        flex-direction: row;
+        justify-content: space-around;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 500;
+        border-right: none;
+        border-top: 1px solid rgba(var(--bf-accent-rgb), 0.15);
+        padding: 10px 0;
+    }
+    .bf-main-content {
+        padding: 16px;
+        padding-bottom: 90px;
+    }
+    .bf-modal-overlay {
+        align-items: flex-end !important;
+        padding: 0 !important;
+    }
+    .bf-modal-card {
+        max-width: 100% !important;
+        width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 92vh !important;
+    }
+    .bf-messages-widget {
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        border-radius: 16px 16px 0 0 !important;
+        height: 70vh !important;
+    }
+    .bf-container {
+        border-radius: 12px !important;
+        padding: 16px !important;
+    }
+    .bf-top-row {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+    .bf-right-col {
+        flex: none !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .bf-header h1 {
+        font-size: 18px !important;
+    }
+}
+
+/* ---- Background themes, chosen in Settings, applied to <body> ---- */
+body {
+    background:
+        radial-gradient(circle at 85% -10%, rgba(var(--bf-accent-rgb), 0.10) 0%, rgba(var(--bf-accent-rgb), 0) 45%),
+        #060606;
+}
+
+/* Custom background image layer: sits behind everything, dimmed for
+   readability. Toggled by adding/removing the class + setting the CSS var. */
+body.bf-has-custom-bg::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: var(--bf-custom-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.22;
+    z-index: 0;
+    pointer-events: none;
+}
+#app {
+    position: relative;
+    z-index: 1;
+}
+
+/* ---- Reduced glow mode: flattens shadows/blur for lower-end devices or preference ---- */
+body.bf-reduce-glow .bf-glow-card,
+body.bf-reduce-glow .bf-sidebar-item.active {
+    box-shadow: none !important;
+}
